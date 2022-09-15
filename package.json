@@ -1,0 +1,19 @@
+{
+  "name": "companion-module-middleman-adit",
+  "version": "1.0.0",
+  "description": "See [HELP.md](./HELP.md) and [LICENSE](./LICENSE)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitfocus/companion-module-middleman-adit.git"
+  },
+  "author": "James Heliker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bitfocus/companion-module-middleman-adit/issues"
+  },
+  "homepage": "https://github.com/bitfocus/companion-module-middleman-adit#readme"
+}
