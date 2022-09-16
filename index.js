@@ -141,12 +141,12 @@ class instance extends instance_skel {
 					}
 				}
 				else {
-					this.log('error', `Failed to get list of variable definitions from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+					this.log('error', `Failed to get list of messaging rule definitions from AdIT Management Service with HTTP status code: ${res.statusCode}`)
 				}
 			})
 
 		}).on('error', err => {
-			this.log('error', `Failed to get list of variable definitions from AdIT Management Service with error: ${err.message}`)
+			this.log('error', `Failed to get list of messaging rule definitions from AdIT Management Service with error: ${err.message}`)
 		})
 	}
 
