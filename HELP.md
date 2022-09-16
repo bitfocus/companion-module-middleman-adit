@@ -1,10 +1,11 @@
-## Generic WebSocket
+## Module to control AdIT software instance
 
 ### Configuration
-* Type in the IP address and port of the device.
+* Type in the IP addresses and port numbers for AdIT management service & instance, and select the desired AdIT channel to interact with.
 
 ### Available Actions
-* Send Command
+* Set Variable Value
+* Evaluate Messaging Rule
 
 ### Available Feedbacks
-* Update Variable
+* None
