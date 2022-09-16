@@ -1,5 +1,5 @@
 {
-  "name": "companion-module-middleman-adit",
+  "name": "middleman-adit",
   "version": "1.0.0",
   "description": "See [HELP.md](./HELP.md) and [LICENSE](./LICENSE)",
   "main": "index.js",
@@ -11,8 +11,10 @@
     "DAI",
     "Dynamic Ad Insertion"
   ],
-  "manufacturer": "Middleman Software, Inc.",
+  "manufacturer": "Middleman Software",
   "product": "AdIT",
+  "shortname": "AdIT",
+  "label": "AdIT",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
