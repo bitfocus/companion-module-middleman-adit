@@ -4,11 +4,6 @@ const http = require('http')
 const WebSocket = require('ws')
 const xml2js = require('xml2js')
 
-var aditChannelDefinitions = []
-var aditManualRuleDefinitions = []
-var aditVariableDefinitions = []
-var aditControlInterfaceID = crypto.randomUUID()
-
 class instance extends instance_skel {
 	isInitialized = false
 
@@ -21,15 +16,19 @@ class instance extends instance_skel {
 		this.initFeedbacks()
 		this.subscribeFeedbacks()
 
+		this.aditChannelDefinitions = []
+		this.aditManualRuleDefinitions = []
+		this.aditVariableDefinitions = []
+		this.aditControlInterfaceID = crypto.randomUUID()
+
 		return this
 	}
 
 	init() {
-		this.log('info', `AdIT instance Control Interface client ID: ${aditControlInterfaceID}`)
+		this.log('info', `AdIT instance Control Interface client ID: ${this.aditControlInterfaceID}`)
 		this.updateVariables()
 		this.initWebSocket()
 
-		//Set timer to get channels, manual rules, and variables from manager every 5 seconds until destroy
 		this.getChannelsFromManager()
 		this.getManualRulesFromManager()
 		this.getVariablesFromManager()
@@ -41,12 +40,21 @@ class instance extends instance_skel {
 			clearInterval(this.config_timer)
 		}
 		this.config_timer = setInterval(() => {
-			this.getChannelsFromManager()
-			this.getManualRulesFromManager()
-			this.getVariablesFromManager()
+			//On interval, call AdIT Management Service API for current lists of channels, manual rules and variables
+			//Only call companion config_fields() and actions() if changes are made to one or more of the lists
+			var myThis = this
+			myThis.getChannelsFromManager(function (channelsChanged) {
+				myThis.getManualRulesFromManager(function (manualRulesChanged) {
+					myThis.getVariablesFromManager(function (variablesChanged) {
+						if (channelsChanged || manualRulesChanged || variablesChanged) {
+							myThis.log('debug', `Available AdIT options have changed, updating...`)
+							myThis.config_fields()
+							myThis.actions(system)
+						}
+					})
+				})
+			})
 
-			this.config_fields()
-			this.actions(system)
 		}, 5000)
 
 		this.isInitialized = true
@@ -75,7 +83,7 @@ class instance extends instance_skel {
 		this.config = config
 
 		//Re-init the WebSocket only if required due to config change:
-		if (this.ws == null || this.ws._url != `ws://${this.config.instance_ip}:${this.config.instance_port}/${aditControlInterfaceID}`) {
+		if (this.ws == null || this.ws._url != `ws://${this.config.instance_ip}:${this.config.instance_port}/${this.aditControlInterfaceID}`) {
 			this.initWebSocket()
 		}
 	}
@@ -94,7 +102,13 @@ class instance extends instance_skel {
 		}
 	}
 
-	getChannelsFromManager() {
+	/**
+	 * Calls AdIT Management Service API to retrieve the current list of channels.
+	 *
+	 * @param {function} callback function that indicates if the list of channels has changed since the last call to this function.
+	 */
+	getChannelsFromManager(callback) {
+		var toReturn = false
 		http.get(`http://${this.config.manager_ip}:${this.config.manager_port}/channels`, res => {
 			let data = []
 			const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -106,10 +120,22 @@ class instance extends instance_skel {
 			res.on('end', () => {
 				//If 200/OK, parse JSON response enumerating the available channels
 				if (res.statusCode == 200) {
-					aditChannelDefinitions = JSON.parse(Buffer.concat(data).toString())
+					var tmpChannelDefinitions = JSON.parse(Buffer.concat(data).toString())
+
+					//Determine if any changes have actually occured before assigning to this.aditChannelDefinitions array
+					if (JSON.stringify(tmpChannelDefinitions) != JSON.stringify(this.aditChannelDefinitions)) {
+						toReturn = true
+					}
+
+					this.aditChannelDefinitions = tmpChannelDefinitions
 				}
 				else {
 					this.log('error', `Failed to get list of channel definitions from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+				}
+
+				//Fire callback function with toReturn to indicate whether or not the list has changed	
+				if (typeof callback === 'function') {
+					callback(toReturn)
 				}
 			})
 
@@ -118,7 +144,14 @@ class instance extends instance_skel {
 		})
 	}
 
-	getManualRulesFromManager() {
+
+	/**
+	 * Calls AdIT Management Service API to retrieve the current list of manual rules for the configured channel.
+	 *
+	 * @param {function} callback function that indicates if the list of manual rules has changed since the last call to this function.
+	 */
+	getManualRulesFromManager(callback) {
+		var toReturn = false
 		http.get(`http://${this.config.manager_ip}:${this.config.manager_port}/channels/${this.config.channel}/messaging-rules`, res => {
 			let data = []
 			const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -131,17 +164,30 @@ class instance extends instance_skel {
 				//If 200/OK, parse JSON response enumerating the channel's messaging rules
 				if (res.statusCode == 200) {
 					var tmpRuleDefinitions = JSON.parse(Buffer.concat(data).toString())
+					var tmpManualRuleDefinitions = []
 
-					aditManualRuleDefinitions = []
+					//Filter tmpRuleDefinitions down to only manual (type 1) rules to populate tmpManualRuleDefinitions
 					for (var tmpRule of tmpRuleDefinitions) {
 						var ruleContents = JSON.parse(tmpRule.JSON)
 						if (ruleContents.RuleType == 1) {
-							aditManualRuleDefinitions.push(tmpRule)
+							tmpManualRuleDefinitions.push(tmpRule)
 						}
 					}
+
+					//Determine if any changes have actually occured before assigning to this.aditManualRuleDefinitions array
+					if (JSON.stringify(tmpManualRuleDefinitions) != JSON.stringify(this.aditManualRuleDefinitions)) {
+						toReturn = true
+					}
+
+					this.aditManualRuleDefinitions = tmpManualRuleDefinitions
 				}
 				else {
 					this.log('error', `Failed to get list of messaging rule definitions from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+				}
+
+				//Fire callback function with toReturn to indicate whether or not the list has changed	
+				if (typeof callback === 'function') {
+					callback(toReturn)
 				}
 			})
 
@@ -150,7 +196,13 @@ class instance extends instance_skel {
 		})
 	}
 
-	getVariablesFromManager() {
+	/**
+	 * Calls AdIT Management Service API to retrieve the current list of variables for the configured channel.
+	 *
+	 * @param {function} callback function that indicates if the list of variables has changed since the last call to this function.
+	 */
+	getVariablesFromManager(callback) {
+		var toReturn = false
 		http.get(`http://${this.config.manager_ip}:${this.config.manager_port}/channels/${this.config.channel}/variables`, res => {
 			let data = []
 			const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -162,20 +214,32 @@ class instance extends instance_skel {
 			res.on('end', () => {
 				//If 200/OK, parse JSON response enumerating the channel's variables
 				if (res.statusCode == 200) {
-					aditVariableDefinitions = JSON.parse(Buffer.concat(data).toString())
+					var tmpVariableDefinitions = JSON.parse(Buffer.concat(data).toString())
 
 					//Construct array of companion variable definitions and call set for all available AdIT variable definitions:
 					var companionVarDefs = []
-					for (var tmpVar of aditVariableDefinitions) {
+					for (var tmpVar of tmpVariableDefinitions) {
 						companionVarDefs.push({
 							label: tmpVar.Name,
 							name: tmpVar.ID
 						})
 					}
+
+					//Determine if any changes have actually occured before assigning to this.aditVariableDefinitions array
+					if (JSON.stringify(tmpVariableDefinitions) != JSON.stringify(this.aditVariableDefinitions)) {
+						toReturn = true
+					}
+
+					this.aditVariableDefinitions = tmpVariableDefinitions;
 					this.setVariableDefinitions(companionVarDefs)
 				}
 				else {
 					this.log('error', `Failed to get list of variable definitions from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+				}
+
+				//Fire callback function with toReturn to indicate whether or not the list has changed	
+				if (typeof callback === 'function') {
+					callback(toReturn)
 				}
 			})
 
@@ -202,7 +266,7 @@ class instance extends instance_skel {
 			this.ws.close(1000)
 			delete this.ws
 		}
-		this.ws = new WebSocket(`ws://${this.config.instance_ip}:${this.config.instance_port}/${aditControlInterfaceID}`)
+		this.ws = new WebSocket(`ws://${this.config.instance_ip}:${this.config.instance_port}/${this.aditControlInterfaceID}`)
 
 		this.ws.on('open', () => {
 			this.log('debug', `AdIT instance Control Interface WebSocket connection opened`)
@@ -295,34 +359,40 @@ class instance extends instance_skel {
 
 	getChannelChoices() {
 		var toReturn = []
-		aditChannelDefinitions.forEach((c) => {
-			toReturn.push({
-				id: c.ID,
-				label: c.Name
+		if (this.aditChannelDefinitions) {
+			this.aditChannelDefinitions.forEach((c) => {
+				toReturn.push({
+					id: c.ID,
+					label: c.Name
+				})
 			})
-		})
+		}
 		return toReturn
 	}
 
 	getManualRuleChoices() {
 		var toReturn = []
-		aditManualRuleDefinitions.forEach((mr) => {
-			toReturn.push({
-				id: mr.ID,
-				label: mr.Name
+		if (this.aditManualRuleDefinitions) {
+			this.aditManualRuleDefinitions.forEach((mr) => {
+				toReturn.push({
+					id: mr.ID,
+					label: mr.Name
+				})
 			})
-		})
+		}
 		return toReturn
 	}
 
 	getVariableChoices() {
 		var toReturn = []
-		aditVariableDefinitions.forEach((v) => {
-			toReturn.push({
-				id: v.ID,
-				label: v.Name
+		if (this.aditVariableDefinitions) {
+			this.aditVariableDefinitions.forEach((v) => {
+				toReturn.push({
+					id: v.ID,
+					label: v.Name
+				})
 			})
-		})
+		}
 		return toReturn
 	}
 
