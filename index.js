@@ -1,5 +1,5 @@
 var instance_skel = require('../../instance_skel')
-const crypto = require('crypto')
+const { v4: uuidv4 } = require('uuid')
 const http = require('http')
 const WebSocket = require('ws')
 const xml2js = require('xml2js')
@@ -19,7 +19,7 @@ class instance extends instance_skel {
 		this.aditChannelDefinitions = []
 		this.aditManualRuleDefinitions = []
 		this.aditVariableDefinitions = []
-		this.aditControlInterfaceID = crypto.randomUUID()
+		this.aditControlInterfaceID = uuidv4()
 
 		return this
 	}
@@ -417,6 +417,8 @@ class instance extends instance_skel {
 					}
 				],
 				callback: (action) => {
+					this.log('info', `Sending request to set variable ID: ${action.options.variable} to value  ${action.options.value}`)
+
 					//Construct XML request to set variable value
 					var obj = { SetVariableValueRequest: { $: { ID: action.options.variable }, _: action.options.value } }
 					var builder = new xml2js.Builder()
@@ -445,6 +447,8 @@ class instance extends instance_skel {
 					}
 				],
 				callback: (action) => {
+					this.log('info', `Sending request to evaluate messaging rule ID: ${action.options.messaging_rule}`)
+
 					//Construct XML request to set variable value
 					var obj = { EvaluateManualMessagingRuleRequest: { $: { ID: action.options.messaging_rule } } }
 					var builder = new xml2js.Builder()
