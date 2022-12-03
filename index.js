@@ -95,7 +95,7 @@ class AdITInstance extends instance_skel {
 				id: 'config_polling_rate',
 				label: 'AdIT Management Service Refresh Rate (in seconds)',
 				tooltip: 'How often to refresh the Channels, Management Rules, Variables, and Instance information from the Management Server',
-				default: 1,
+				default: 5,
 				width: 6,
 				regex: this.REGEX_NUMBER
 			},
@@ -141,9 +141,10 @@ class AdITInstance extends instance_skel {
 				this.status(this.STATUS_OK, 'Channels loaded. Choose a Channel in the Config.');
 				if (this.config.channel == 'none') {
 					this.config.channel = this.getChannelChoices.bind(this)()[0].id; //get the first loaded channel
-				}				
-				this.saveConfig(); //saves the config to memory
-				this.config_fields.bind(this)();
+					this.saveConfig(); //saves the config to memory
+					this.updateConfig.bind(this)(this.config);
+				}
+				this.config_fields.bind(this)();				
 			}
 		})
 	}
