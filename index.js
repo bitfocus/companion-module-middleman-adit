@@ -1,13 +1,13 @@
-var instance_skel = require('../../instance_skel')
+const { InstanceBase, Regex, runEntrypoint } = require('@companion-module/base')
+const UpgradeScripts = require('./src/upgrades')
 const { v4: uuidv4 } = require('uuid')
 const http = require('http')
 const WebSocket = require('ws')
 const xml2js = require('xml2js')
 
-class AdITInstance extends instance_skel {
-
-	constructor(system, id, config) {
-		super(system, id, config)
+class moduleInstance extends InstanceBase {
+	constructor(internal) {
+		super(internal)
 
 		this.subscriptions = new Map()
 
@@ -29,15 +29,15 @@ class AdITInstance extends instance_skel {
 		return this
 	}
 
-	init() {
+	async init(config) {
 		this.log('info', `AdIT Instance Control Interface client ID: ${this.aditControlInterfaceID}`)
 
-		this.config_fields()
+		this.getConfigFields()
 
-		this.updateConfig(this.config);
+		this.configUpdated(config);
 	}
 
-	updateConfig(config) {
+	configUpdated(config) {
 		this.config = config
 
 		this.actions.bind(this)();
@@ -51,10 +51,10 @@ class AdITInstance extends instance_skel {
 		}
 	}
 
-	config_fields() {
+	getConfigFields() {
 		return [
 			{
-				type: 'text',
+				type: 'static-text',
 				id: 'info',
 				label: 'Information',
 				width: 12,
@@ -125,7 +125,7 @@ class AdITInstance extends instance_skel {
 			clearInterval(this.config_timer)
 		}
 
-		this.status(this.STATUS_WARNING, 'Getting Channels from Management Service...');
+		this.updateStatus('warning', 'Getting Channels from Management Service...');
 
 		this.getChannels.bind(this)(); //immediately ask for the list of channels
 
@@ -138,7 +138,7 @@ class AdITInstance extends instance_skel {
 		this.getChannelsFromManager(function (channelsChanged) {
 			if (channelsChanged) { //Only update if changes are made to one or more of the lists
 				this.log('debug', `Available AdIT Channel options have changed, updating...`)
-				this.status(this.STATUS_OK, 'Channels loaded. Choose a Channel in the Config.');
+				this.updateStatus('ok', 'Channels loaded. Choose a Channel in the Config.');
 				if (this.config.channel == 'none') {
 					this.config.channel = this.getChannelChoices.bind(this)()[0].id; //get the first loaded channel
 					this.saveConfig(); //saves the config to memory
@@ -154,7 +154,7 @@ class AdITInstance extends instance_skel {
 			clearInterval(this.channelDataTimer)
 		}
 
-		this.status(this.STATUS_OK);
+		this.updateStatus('ok');
 
 		if (this.config.channel !== 'none') {
 			//only proceed if they have configured a channel
@@ -185,8 +185,8 @@ class AdITInstance extends instance_skel {
 
 				for (let tmpVar of this.aditVariableDefinitions) {
 					this.VARIABLES_FROMMANAGER.push({
-						label: tmpVar.Name,
-						name: tmpVar.ID
+						name: tmpVar.Name,
+						variableId: tmpVar.ID
 					})
 				}
 
@@ -204,75 +204,79 @@ class AdITInstance extends instance_skel {
 					this.VARIABLES_INSTANCES = []; //reset the array of Companion variables related to Instances, since the Instances data has changed
 					
 					this.VARIABLES_INSTANCES.push({
-						label: 'Instance Count',
-						name: 'instance_count'
+						name: 'Instance Count',
+						variableId: 'instance_count'
 					});
 
 					this.VARIABLES_INSTANCES.push({
-						label: 'Instance Primary Name',
-						name: 'instance_primary_name'
+						name: 'Instance Primary Name',
+						variableId: 'instance_primary_name'
 					});
 
 					this.VARIABLES_INSTANCES.push({
-						label: 'Instance Connections Open',
-						name: 'instance_connections_open'
+						name: 'Instance Connections Open',
+						variableId: 'instance_connections_open'
 					});
 	
 					for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {		
 						this.VARIABLES_INSTANCES.push({
-							label: `Instance ${i+1} Name`,
-							name: `instance_name_${i+1}`
+							name: `Instance ${i+1} Name`,
+							variableId: `instance_name_${i+1}`
 						})
 	
 						this.VARIABLES_INSTANCES.push({
-							label: `Instance ${i+1} Description`,
-							name: `instance_description_${i+1}`
+							name: `Instance ${i+1} Description`,
+							variableId: `instance_description_${i+1}`
 						})
 	
 						this.VARIABLES_INSTANCES.push({
-							label: `Instance ${i+1} Primary`,
-							name: `instance_primary_${i+1}`
+							name: `Instance ${i+1} Primary`,
+							variableId: `instance_primary_${i+1}`
 						})
 	
 						this.VARIABLES_INSTANCES.push({
-							label: `Instance ${i+1} IP Address`,
-							name: `instance_ipaddress_${i+1}`
+							name: `Instance ${i+1} IP Address`,
+							variableId: `instance_ipaddress_${i+1}`
 						})
 
 						this.VARIABLES_INSTANCES.push({
-							label: `Instance ${i+1} Control Port`,
-							name: `instance_controlport_${i+1}`
+							name: `Instance ${i+1} Control Port`,
+							variableId: `instance_controlport_${i+1}`
 						})
 					}
 
 					this.createVariables.bind(this)(); //now create all Companion Variables (both Instance and Management Variables)
 
-					this.setVariable('instance_count', this.aditInstanceDefinitions.length);
+					let variableValues = {};
+
+					variableValues.instance_count = this.aditInstanceDefinitions.length;
 
 					//now populate the Instance variables
 					for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {
 						let aditInstance = this.aditInstanceDefinitions[i];
 	
 						if (aditInstance.hasOwnProperty('Name')) {
-							this.setVariable(`instance_name_${i+1}`, aditInstance.Name);
+							variableValues[`instance_name_${i+1}`] = aditInstance.Name;
 						}
 						
 						if (aditInstance.hasOwnProperty('Description')) {
-							this.setVariable(`instance_description_${i+1}`, aditInstance.Description);
+							variableValues[`instance_description_${i+1}`] = aditInstance.Description;
 						}
 
 						if (aditInstance.hasOwnProperty('Primary')) {
-							this.setVariable(`instance_primary_${i+1}`, aditInstance.Primary ? 'True' : 'False');
+							variableValues[`instance_primary_${i+1}`] = aditInstance.Primary ? 'True' : 'False';
 						}
 
 						if (aditInstance.hasOwnProperty('IPAddress')) {
-							this.setVariable(`instance_ipaddress_${i+1}`, aditInstance.IPAddress);
+							variableValues[`instance_ipaddress_${i+1}`] = aditInstance.IPAddress;
 						}
 
 						if (aditInstance.hasOwnProperty('ControlInterfacePortNumber')) {
-							this.setVariable(`instance_controlport_${i+1}`, aditInstance.ControlInterfacePortNumber);
+							variableValues[`instance_controlport_${i+1}`] = aditInstance.ControlInterfacePortNumber;
 						}
 					}
+
+					this.setVariableValues(variableValues);
 				}
 				catch(error) {
 					this.log('debug', `Error setting Instance Information Variables: ${error.toString()}`);
@@ -297,7 +301,7 @@ class AdITInstance extends instance_skel {
 		this.setVariableDefinitions(companionVarDefs);
 	}
 
-	destroy() {
+	async destroy() {
 		this.isInitialized = false
 
 		this.clearIntervals.bind(this)();
@@ -360,20 +364,20 @@ class AdITInstance extends instance_skel {
 					}
 					catch(error) {
 						this.log('error', `Failed to get list of Channel definitions from AdIT Management Service. Response Error: ${error.toString()}`)
-						this.status(this.STATUS_ERROR, 'Error getting Channels');
+						this.updateStatus('error', 'Error getting Channels');
 						this.clearIntervals.bind(this)();
 					}
 				})
 	
 			}).on('error', err => {
 				this.log('error', `Failed to get list of Channel definitions from AdIT Management Service with error: ${err.message}`)
-				this.status(this.STATUS_ERROR, 'Error getting Channels');
+				this.updateStatus('error', 'Error getting Channels');
 				this.clearIntervals.bind(this)();
 			})
 		}
 		catch(error) {
 			this.log('error', 'Error retrieving Channels from AdIT Management Server. Error: ' + error.toString());
-			this.status(this.STATUS_ERROR, 'Error getting Channels');
+			this.updateStatus('error', 'Error getting Channels');
 			this.clearIntervals.bind(this)();
 		}
 	}
@@ -428,20 +432,20 @@ class AdITInstance extends instance_skel {
 					}
 					catch(error) {
 						this.log('error', `Failed to get list of Manual Rules from AdIT Management Service. Error: ${error.toString()}`)
-						this.status(this.STATUS_ERROR, 'Error getting Manual Rules');
+						this.updateStatus('error', 'Error getting Manual Rules');
 						this.clearIntervals.bind(this)();
 					}
 				})
 	
 			}).on('error', err => {
 				this.log('error', `Failed to get list of Manual Rule definitions from AdIT Management Service with error: ${err.message}`)
-				this.status(this.STATUS_ERROR, 'Error getting Manual Rules');
+				this.updateStatus('error', 'Error getting Manual Rules');
 				this.clearIntervals.bind(this)();
 			})
 		}
 		catch(error) {
 			this.log('error', 'Error retrieving Manual Rules from AdIT Management Server. Error: ' + error.toString());
-			this.status(this.STATUS_ERROR, 'Error getting Manual Rules');
+			this.updateStatus('error', 'Error getting Manual Rules');
 			this.clearIntervals.bind(this)();
 		}
 	}
@@ -487,20 +491,20 @@ class AdITInstance extends instance_skel {
 					}
 					catch(error) {
 						this.log('error', `Failed to get list of Variable Definitions from AdIT Management Service. Error: ${error.toString()}`)
-						this.status(this.STATUS_ERROR, 'Error getting Variables');
+						this.updateStatus('error', 'Error getting Variables');
 						this.clearIntervals.bind(this)();
 					}
 				})
 	
 			}).on('error', err => {
 				this.log('error', `Failed to get list of Variable Definitions from AdIT Management Service with error: ${err.message}`)
-				this.status(this.STATUS_ERROR, 'Error getting Variables');
+				this.updateStatus('error', 'Error getting Variables');
 				this.clearIntervals.bind(this)();
 			})
 		}
 		catch(error) {
 			this.log('error', 'Error retrieving Variables from AdIT Management Server. Error: ' + error.toString());
-			this.status(this.STATUS_ERROR, 'Error getting Variables');
+			this.updateStatus('error', 'Error getting Variables');
 			this.clearIntervals.bind(this)();
 		}
 	}
@@ -546,26 +550,26 @@ class AdITInstance extends instance_skel {
 					}
 					catch(error) {
 						this.log('error', `Failed to get list of Instances from AdIT Management Service. Error: ${error.toString()}`)
-						this.status(this.STATUS_ERROR, 'Error getting Instances');
+						this.updateStatus('error', 'Error getting Instances');
 						this.clearIntervals.bind(this)();
 					}
 				})
 	
 			}).on('error', err => {
 				this.log('error', `Failed to get list of Instance definitions from AdIT Management Service with error: ${err.message}`)
-				this.status(this.STATUS_ERROR, 'Error getting Instances');
+				this.updateStatus('error', 'Error getting Instances');
 				this.clearIntervals.bind(this)();
 			})
 		}
 		catch(error) {
 			this.log('error', 'Error retrieving Instances from AdIT Management Server. Error: ' + error.toString());
-			this.status(this.STATUS_ERROR, 'Error getting Instances');
+			this.updateStatus('error', 'Error getting Instances');
 			this.clearIntervals.bind(this)();
 		}
 	}
 
 	initWebSockets() {
-		this.status(this.STATUS_UNKNOWN, 'Opening Instance Websocket Connections...');
+		this.updateStatus('unknown', 'Opening Instance Websocket Connections...');
 
 		//first go through and close out any existing websocket definitions, if they happen to exist
 		this.closeWebSockets.bind(this)();
@@ -593,7 +597,7 @@ class AdITInstance extends instance_skel {
 			this.openWebSocket.bind(this)(aditInstance.ID, primary);			
 		}
 
-		this.status(this.STATUS_OK);
+		this.updateStatus('ok');
 
 		setTimeout(this.checkForPrimary.bind(this), 5000); //checks after 5 seconds
 	}
@@ -620,7 +624,7 @@ class AdITInstance extends instance_skel {
 
 			websocketObj.ws.on('open', () => {
 				this.log('debug', `AdIT Instance Control Interface WebSocket connection opened: ${aditInstance.Name}`)
-				this.status(this.STATUS_OK)
+				this.updateStatus('ok')
 				websocketObj.state = 'ok';
 
 				for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
@@ -637,7 +641,7 @@ class AdITInstance extends instance_skel {
 					if (this.aditInstanceWebSockets[i].ID == instanceID) {
 						if (this.aditInstanceWebSockets[i].state !== 'force-closed') {
 							this.log('warn', `AdIT Instance (${aditInstance.Name}) Control Interface WebSocket connection closed with code ${code}`)
-							this.status(this.STATUS_WARNING);
+							this.updateStatus('warning');
 							this.aditInstanceWebSockets[i].state = 'closed';
 
 							if (this.aditInstanceWebSockets[i].primary == true) {
@@ -664,7 +668,7 @@ class AdITInstance extends instance_skel {
 			websocketObj.ws.on('error', (data) => {
 				let state = 'error';
 
-				this.status(this.STATUS_WARNING);
+				this.updateStatus('warning');
 
 				if (data.toString().indexOf('ECONNREFUSED') > -1) {
 					state = 'conn-refused';
@@ -733,7 +737,9 @@ class AdITInstance extends instance_skel {
 			xml2js.parseString(data, function (err, result) {
 				if (result.Variable != null) {
 					//This is a variable XML message that was received
-					myThis.setVariable(result.Variable.$.ID, result.Variable._)
+					let variableVal = {}
+					variableVal[result.Variable.$.ID] = result.Variable._
+					myThis.setVariableValues(variableVal)
 				}
 			})
 		}		
@@ -749,7 +755,9 @@ class AdITInstance extends instance_skel {
 				this.aditInstanceWebSockets[i].primary = true;
 				let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == this.aditInstanceWebSockets[i].ID);
 				this.log('debug', `New Instance Marked as Primary: ${aditInstance.Name}`)
-				this.setVariable('instance_primary_name', aditInstance.Name);
+				this.setVariableValues({
+					instance_primary_name: aditInstance.Name
+				});
 				primaryElected = true;
 				this.primaryFound = true;
 				break;
@@ -759,7 +767,7 @@ class AdITInstance extends instance_skel {
 		if (!primaryElected) {
 			this.log('error', 'Unable to select a new Primary Instance to receive messages from.');
 			this.primaryFound = false;
-			this.status(this.STATUS_ERROR);
+			this.updateStatus('error');
 		}
 	}
 
@@ -773,10 +781,12 @@ class AdITInstance extends instance_skel {
 
 		if (instanceOpenCount == 0) {
 			this.log('error', `No Instance WebSocket connections available. The module will not function properly until an Instance connection is available.`);
-			this.status(this.STATUS_ERROR);
+			this.updateStatus('error');
 		}
 
-		this.setVariable('instance_connections_open', instanceOpenCount);
+		this.setVariableValues({
+			instance_connections_open: instanceOpenCount
+		});
 	}
 
 	closeWebSockets() {
@@ -851,9 +861,9 @@ class AdITInstance extends instance_skel {
 	}
 
 	actions() {
-		this.setActions({
+		this.setActionDefinitions({
 			set_variable_value: {
-				label: 'Set Variable Value',
+				name: 'Set Variable Value',
 				options: [
 					{
 						type: 'dropdown',
@@ -875,8 +885,12 @@ class AdITInstance extends instance_skel {
 
 					//Construct XML request to set variable value
 					let val = action.options.value;
-					this.parseVariables(action.options.value, function(value) {
+					this.parseVariablesInString(action.options.value)
+					.then((value) => {
 						val = value;
+					})
+					.catch((error) => {
+						//error parsing the variable
 					});
 
 					let obj = { SetVariableValueRequest: { $: { ID: action.options.variable }, _: val} }
@@ -893,7 +907,7 @@ class AdITInstance extends instance_skel {
 				},
 			},
 			evaluate_manual_rule: {
-				label: 'Evaluate Messaging Rule',
+				name: 'Evaluate Messaging Rule',
 				options: [
 					{
 						type: 'dropdown',
@@ -930,4 +944,4 @@ class AdITInstance extends instance_skel {
 	}
 }
 
-exports = module.exports = AdITInstance
+runEntrypoint(moduleInstance, UpgradeScripts)
