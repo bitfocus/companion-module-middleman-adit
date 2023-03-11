@@ -178,8 +178,15 @@ module.exports = {
 				variableValues[`instance_description_${i+1}`] = aditInstance.Description;
 			}
 
-			if (aditInstance.hasOwnProperty('Primary')) {
+			/*if (aditInstance.hasOwnProperty('Primary')) {
 				variableValues[`instance_primary_${i+1}`] = aditInstance.Primary ? 'True' : 'False';
+			}*/
+			//check to see if this instance is the primary instance
+			if (aditInstance.hasOwnProperty('ID') && aditInstance.ID == this.aditPrimaryInstanceID) {
+				variableValues[`instance_primary_${i+1}`] = 'True';
+			}
+			else {
+				variableValues[`instance_primary_${i+1}`] = 'False';
 			}
 
 			if (aditInstance.hasOwnProperty('IPAddress')) {
@@ -565,6 +572,8 @@ module.exports = {
 				this.primaryFound = false;
 				this.updateStatus('error');
 			}
+
+			this.aditPrimaryInstanceID = primaryInstanceID;
 
 			this.updateInstanceVariables();
 
