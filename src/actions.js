@@ -22,7 +22,7 @@ module.exports = {
 					}
 				],
 				callback: (action) => {
-					this.log('info', `Sending request to set variable ID: ${action.options.variable} to value  ${action.options.value}`)
+					this.log('info', `Sending request to set variable ID: ${action.options.variable} to value: ${action.options.value}`)
 
 					//Construct XML request to set variable value
 					let val = action.options.value;
@@ -81,9 +81,12 @@ module.exports = {
 	},
 
 	sendMessage(msg) {
-		this.log('debug', 'Sending Message...');
 		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
-			this.aditInstanceWebSockets[i].ws.send(msg);
+			if (this.aditInstanceWebSockets[i].state == 'open') {
+				let aditInstance = this.aditInstanceDefinitions.find(x => x.ID == this.aditInstanceWebSockets[i].ID);
+				this.log('debug', `Sending message to AdIT Instance: ${aditInstance.Name}`);
+				this.aditInstanceWebSockets[i].ws.send(msg);
+			}
 		}
 	}
 }

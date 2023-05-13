@@ -21,7 +21,6 @@ module.exports = {
 						</div>
 					</div>
 				`,
-				isVisible: (configValues) => configValues.channel == 'none',
 			},
 			{
 				type: 'textinput',
@@ -55,8 +54,8 @@ module.exports = {
 				label: 'Channel',
 				width: 12,
 				choices: this.getChannelChoices.bind(this)(),
-				default: this.getChannelChoices.bind(this)()[0].id,
-				isVisible: (configValues) => configValues.channel !== 'none',
+				default: 'none',
+				//isVisible: (configValues) => configValues.channelsLoaded === true
 			},
 			{
 				type: 'checkbox',

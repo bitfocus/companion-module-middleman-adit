@@ -1,3 +1,5 @@
+const { InstanceStatus } = require('@companion-module/base')
+
 const http = require('http')
 
 module.exports = {
@@ -6,30 +8,38 @@ module.exports = {
 			clearInterval(this.config_timer)
 		}
 
-		this.updateStatus('warning', 'Getting Channels from Management Service...');
+		this.updateStatus(InstanceStatus.Warning, 'Getting Channels from Management Service...');
 
 		this.getChannels(); //immediately ask for the list of channels
 
 		//On interval, call AdIT Management Service API for current lists of channels
+		this.log('debug', `Requesting Channels from Management Service every ${this.config.config_polling_rate} seconds...`);
 		this.config_timer = setInterval(this.getChannels.bind(this), (parseInt(this.config.config_polling_rate) * 1000));
 	},
 
 	getChannels() {
-		this.log('debug', 'Getting Channels from Manager...');
-		this.getChannelsFromManager.bind(this)(function (channelsChanged) {
-			let self = this;
-
+		let self = this;
+		self.log('debug', 'Getting Channels from Manager...');
+		self.getChannelsFromManager.bind(self)(function (channelsChanged) {
 			if (channelsChanged) { //Only update if changes are made to one or more of the lists
-				self.log('debug', `Available AdIT Channel options have changed, updating...`)
-				self.updateStatus('ok', 'Channels loaded. Choose a Channel in the Config.');
-				if (self.config.channel == 'none') {
-					self.config.channel = self.getChannelChoices.bind(self)()[0].id; //get the first loaded channel
-					self.saveConfig(); //saves the config to memory
-					self.configUpdated(self.config);
-				}
-				self.getConfigFields(); //reloads the config fields		
+				self.log('debug', `Available AdIT Channel options have changed, updating...`);
+				//self.updateStatus(InstanceStatus.Warning, 'Choose a Channel in the Config.');
+				self.getConfigFields(); //reloads the config fields
 			}
-		})
+			if (self.config.channel == 'none') {
+				self.updateStatus('warn', 'Choose a Channel in the Config.');
+				self.log('warn', 'No Channel selected, choose a Channel in the Config.');
+				//self.updateStatus(InstanceStatus.Ok);
+			}
+			else {
+				//probably ok
+				self.updateStatus(InstanceStatus.Ok);
+			}
+
+			//clear the timer so they have a chance to choose
+			clearInterval(self.config_timer);
+			self.config_timer = undefined;
+		});
 	},
 
 	startChannelDataTimer() { //requests the Channel Data (Manual Rules, Variables, and Instances) on a timer/interval
@@ -37,8 +47,9 @@ module.exports = {
 			clearInterval(this.channelDataTimer)
 		}
 
-		this.updateStatus('ok');
-
+		this.updateStatus(InstanceStatus.Ok);
+		console.log('CONFIGURED CHANNEL:')
+		console.log(this.config.channel);
 		if (this.config.channel !== 'none') {
 			//only proceed if they have configured a channel
 
@@ -50,101 +61,109 @@ module.exports = {
 	},
 
 	getChannelData() { //requests the Manual Rules, Variables, and Instances from the AdIT Management Service
-		this.getManualRulesFromManager.bind(this)(function (manualRulesChanged) {
-			let self = this;
+		let self = this;
 
-			if (manualRulesChanged) {
-				//reload actions
-				self.log('debug', `Available AdIT Manual Rules have changed, updating...`)
-				self.initActions();
-			}
-		})
+		if (self.config.channel !== 'none') {
+			this.getManualRulesFromManager.bind(this)(function (manualRulesChanged) {
+				let self = this;
 
-		this.getVariablesFromManager.bind(this)(function (variablesChanged) {
-			let self = this;
-
-			if (variablesChanged) {
-				//reload variables
-				self.log('debug', `Available AdIT Variables have changed, updating...`)
-
-				//Construct array of companion variable definitions and call set for all available AdIT variable definitions:
-				self.VARIABLES_FROMMANAGER = []; //reset the array of Companion variables loaded from the Management Service, because we are recreating them
-
-				for (let tmpVar of self.aditVariableDefinitions) {
-					self.VARIABLES_FROMMANAGER.push({
-						name: tmpVar.Name,
-						variableId: tmpVar.ID
-					})
+				if (manualRulesChanged) {
+					//reload actions
+					self.log('debug', `Available AdIT Manual Rules have changed, updating...`)
+					self.initActions();
 				}
+			})
 
-				self.createVariables.bind(self)(); //now create all Companion Variables (both Instance and Management Variables)
-				
-				self.initActions();
-			}
-		})
+			this.getVariablesFromManager.bind(this)(function (variablesChanged) {
+				let self = this;
 
-		this.getInstancesFromManager.bind(this)(function (instancesChanged) {
-			let self = this;
+				if (variablesChanged) {
+					//reload variables
+					self.log('debug', `Available AdIT Variables have changed, updating...`)
 
-			if (instancesChanged) {
-				//reload instances
-				this.log('debug', `Available AdIT Instances have changed, updating...`);
-				try {
-					this.VARIABLES_INSTANCES = []; //reset the array of Companion variables related to Instances, since the Instances data has changed
-					
-					this.VARIABLES_INSTANCES.push({
-						name: 'Instance Count',
-						variableId: 'instance_count'
-					});
+					//Construct array of companion variable definitions and call set for all available AdIT variable definitions:
+					self.VARIABLES_FROMMANAGER = []; //reset the array of Companion variables loaded from the Management Service, because we are recreating them
 
-					this.VARIABLES_INSTANCES.push({
-						name: 'Instance Primary Name',
-						variableId: 'instance_primary_name'
-					});
-
-					this.VARIABLES_INSTANCES.push({
-						name: 'Instance Connections Open',
-						variableId: 'instance_connections_open'
-					});
-	
-					for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {		
-						this.VARIABLES_INSTANCES.push({
-							name: `Instance ${i+1} Name`,
-							variableId: `instance_name_${i+1}`
-						})
-	
-						this.VARIABLES_INSTANCES.push({
-							name: `Instance ${i+1} Description`,
-							variableId: `instance_description_${i+1}`
-						})
-	
-						this.VARIABLES_INSTANCES.push({
-							name: `Instance ${i+1} Primary`,
-							variableId: `instance_primary_${i+1}`
-						})
-	
-						this.VARIABLES_INSTANCES.push({
-							name: `Instance ${i+1} IP Address`,
-							variableId: `instance_ipaddress_${i+1}`
-						})
-
-						this.VARIABLES_INSTANCES.push({
-							name: `Instance ${i+1} Control Port`,
-							variableId: `instance_controlport_${i+1}`
+					for (let tmpVar of self.aditVariableDefinitions) {
+						self.VARIABLES_FROMMANAGER.push({
+							name: tmpVar.Name,
+							variableId: tmpVar.ID
 						})
 					}
 
-					this.createVariables(); //now create all Companion Variables (both Instance and Management Variables)
+					self.createVariables.bind(self)(); //now create all Companion Variables (both Instance and Management Variables)
+					
+					self.initActions();
+				}
+			})
 
-					this.updateInstanceVariables();
+			this.getInstancesFromManager.bind(this)(function (instancesChanged) {
+				let self = this;
+
+				if (instancesChanged) {
+					//reload instances
+					this.log('debug', `Available AdIT Instances have changed, updating...`);
+					try {
+						this.VARIABLES_INSTANCES = []; //reset the array of Companion variables related to Instances, since the Instances data has changed
+						
+						this.VARIABLES_INSTANCES.push({
+							name: 'Instance Count',
+							variableId: 'instance_count'
+						});
+
+						this.VARIABLES_INSTANCES.push({
+							name: 'Instance Primary Name',
+							variableId: 'instance_primary_name'
+						});
+
+						this.VARIABLES_INSTANCES.push({
+							name: 'Instance Connections Open',
+							variableId: 'instance_connections_open'
+						});
+		
+						for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {		
+							this.VARIABLES_INSTANCES.push({
+								name: `Instance ${i+1} Name`,
+								variableId: `instance_name_${i+1}`
+							})
+		
+							this.VARIABLES_INSTANCES.push({
+								name: `Instance ${i+1} Description`,
+								variableId: `instance_description_${i+1}`
+							})
+		
+							this.VARIABLES_INSTANCES.push({
+								name: `Instance ${i+1} Primary`,
+								variableId: `instance_primary_${i+1}`
+							})
+		
+							this.VARIABLES_INSTANCES.push({
+								name: `Instance ${i+1} IP Address`,
+								variableId: `instance_ipaddress_${i+1}`
+							})
+
+							this.VARIABLES_INSTANCES.push({
+								name: `Instance ${i+1} Control Port`,
+								variableId: `instance_controlport_${i+1}`
+							})
+						}
+
+						this.createVariables(); //now create all Companion Variables (both Instance and Management Variables)
+
+						this.updateInstanceVariables();
+					}
+					catch(error) {
+						this.log('debug', `Error setting Instance Information Variables: ${error.toString()}`);
+					}
+					
+					this.initWebSockets();
 				}
-				catch(error) {
-					this.log('debug', `Error setting Instance Information Variables: ${error.toString()}`);
-				}
-				
-				this.initWebSockets();
-			}
-		})
+			})
+		}
+		else {
+			this.log('warn', `No Channel selected, choose a Channel in the Config.`);
+			this.clearIntervals();
+		}
 	},
 
 	createVariables() { //Because the calls to get Instances and Variables happen asynchronously, we need one common function to call from both areas that can build the list of Companion Variables
@@ -178,8 +197,15 @@ module.exports = {
 				variableValues[`instance_description_${i+1}`] = aditInstance.Description;
 			}
 
-			if (aditInstance.hasOwnProperty('Primary')) {
+			/*if (aditInstance.hasOwnProperty('Primary')) {
 				variableValues[`instance_primary_${i+1}`] = aditInstance.Primary ? 'True' : 'False';
+			}*/
+			//check to see if this instance is the primary instance
+			if (aditInstance.hasOwnProperty('ID') && aditInstance.ID == this.aditPrimaryInstanceID) {
+				variableValues[`instance_primary_${i+1}`] = 'True';
+			}
+			else {
+				variableValues[`instance_primary_${i+1}`] = 'False';
 			}
 
 			if (aditInstance.hasOwnProperty('IPAddress')) {
@@ -204,7 +230,7 @@ module.exports = {
 
 		try {
 			let toReturn = false
-			//this.log('debug', `Getting Channels from ${this.config.manager_ip}:${this.config.manager_port}`)
+			self.log('debug', `Getting Channels from ${this.config.manager_ip}:${this.config.manager_port}`)
 			http.get(`http://${this.config.manager_ip}:${this.config.manager_port}/channels`, res => {
 				let data = []
 				const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -266,6 +292,7 @@ module.exports = {
 		try {
 			let toReturn = false
 			self.log('debug', `Getting Manual Rules From Manager...`);
+			self.log('debug', `http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/messaging-rules`);
 			http.get(`http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/messaging-rules`, res => {
 				let data = []
 				const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -335,7 +362,8 @@ module.exports = {
 
 		try {
 			let toReturn = false
-			this.log('debug', `Getting Variables From Manager...`);
+			self.log('debug', `Getting Variables From Manager...`);
+			self.log('debug', `http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/variables`);
 			http.get(`http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/variables`, res => {
 				let data = []
 				const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -397,6 +425,7 @@ module.exports = {
 		try {
 			let toReturn = false
 			self.log('debug', `Getting Instances From Manager...`);
+			self.log('debug', `http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/instances`);
 			http.get(`http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/instances`, res => {
 				let data = []
 				const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'
@@ -453,6 +482,11 @@ module.exports = {
 	getChannelChoices() {
 		let toReturn = []
 		if (this.aditChannelDefinitions.length > 0) {
+			toReturn.push({
+				id: 'none',
+				label: '(Select a Channel)'
+			})
+
 			this.aditChannelDefinitions.forEach((c) => {
 				if (c.NetworkEdition && c.NetworkEdition == true) {
 					toReturn.push({
@@ -565,6 +599,8 @@ module.exports = {
 				this.primaryFound = false;
 				this.updateStatus('error');
 			}
+
+			this.aditPrimaryInstanceID = primaryInstanceID;
 
 			this.updateInstanceVariables();
 
