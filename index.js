@@ -45,6 +45,8 @@ class moduleInstance extends InstanceBase {
 
 		this.currentlyReelectingPrimary = false;
 
+		this.aditMessages = [];
+
 		return this
 	}
 

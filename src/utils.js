@@ -546,6 +546,7 @@ module.exports = {
 				this.setVariableValues({
 					instance_primary_name: aditInstance.Name
 				});
+				this.aditPrimaryInstanceID = primaryInstanceID;
 				break;
 			}
 		}
@@ -583,6 +584,8 @@ module.exports = {
 					primaryElected = true;
 					this.primaryFound = true;
 					primaryInstanceID = this.aditInstanceWebSockets[i].ID;
+					this.aditPrimaryInstanceID = primaryInstanceID;
+					this.checkAditMessages();
 					break;
 				}
 			}
@@ -606,5 +609,27 @@ module.exports = {
 
 			this.currentlyReelectingPrimary = false;
 		}		
-	}
+	},
+
+	checkAditMessages() {
+		let self = this;
+
+		self.log('debug', `Checking ${self.aditMessages.length} stored AdIT Messages...`);
+
+		self.log('debug', `Messages matching the primary instance ID: ${self.aditPrimaryInstanceID} will be processed.`);
+
+		//lets see if any messages arrived from any instances that are primary, that we now need to process
+		for (let i = 0; i < self.aditMessages.length; i++) {
+			if (self.aditMessages[i].instanceId == self.aditPrimaryInstanceID) {  //this is a message from our primary instance
+				//if type is a variable
+				if (self.aditMessages[i].type == 'variable') {
+					//do something with this variable
+					self.log('debug', 'Messages received from Primary Instance while no Primary was connected. Setting variable value.');
+					let variableObj = {};
+					variableObj[self.aditMessages[i].variableId] = self.aditMessages[i].variableValue;
+					self.setVariableValues(variableObj);
+				}
+			}
+		}
+	},
 }

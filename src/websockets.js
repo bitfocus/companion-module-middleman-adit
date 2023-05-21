@@ -12,7 +12,7 @@ module.exports = {
 		//now open a websocket to each instance ID
 		for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {
 			let aditInstance = this.aditInstanceDefinitions[i];
-			this.openWebSocket.bind(this)(aditInstance.ID, aditInstance.Primary);			
+			this.openWebSocket.bind(this)(aditInstance.ID, aditInstance.Primary);	
 		}
 
 		this.updateStatus('ok');
@@ -23,6 +23,8 @@ module.exports = {
 	},
 
 	openWebSocket(instanceID, primary) {
+		let self = this;
+
 		this.log('debug', 'Opening WebSocket Connection for: ' + instanceID);
 		
 		let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
@@ -158,37 +160,58 @@ module.exports = {
 	},
 
 	messageReceivedFromWebSocket(instanceID, isPrimary, data) {
-		let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
-		let aditInstanceWS = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.ID == instanceID);
+		let self = this;
 
-		//let isPrimary = false;
-
-		//check if there is a primary instance at all in the aditInstanceDefinitions array
-		/*let primaryInstance = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.primary == true);
-		if (primaryInstance == undefined) {
-			//if there is no primary instance, then accept this message as if it was primary
-			isPrimary = true;
+		//let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
+		//let aditInstanceWS = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.ID == instanceID);
+	
+		if (this.config.log_control_interface_messages) {
+			this.log('debug', `AdIT Control Interface message received: ${data}`)
 		}
 
-		if (aditInstanceWS.primary == true) {
-			isPrimary = true;
-		}*/
-
-		if (isPrimary == true) {
-			if (this.config.log_control_interface_messages) {
-				this.log('debug', `AdIT Control Interface message received: ${data}`)
-			}
-	
-			let myThis = this;
-			xml2js.parseString(data, function (err, result) {
-				if (result.Variable != null) {
-					//This is a variable XML message that was received
+		xml2js.parseString(data, function (err, result) {
+			if (result.Variable != null) {
+				self.log('debug', `Variable message received from AdIT Instance: ${instanceID}`);
+				//This is a variable XML message that was received
+				if (isPrimary == true) {
+					//if this is a primary instance, save that variable value
+					self.log('debug', 'This is a primary instance, so we will save the variable value.');
 					let variableVal = {}
 					variableVal[result.Variable.$.ID] = result.Variable._
-					myThis.setVariableValues(variableVal)
+					self.setVariableValues(variableVal)
+
+					self.log('debug', `Variable ${result.Variable.$.ID} set to ${result.Variable._}`);
+				}			
+
+				//also just save the variable value to an array, in case a message arrives while we do not have a primary open, and then we will periodically check this array for any values to set
+				let aditMessageObj = {};
+				aditMessageObj.instanceId = instanceID;
+				aditMessageObj.type = 'variable';
+				aditMessageObj.variableId = result.Variable.$.ID;
+				aditMessageObj.variableValue = result.Variable._;
+
+				//lets make sure that this variable is not already in the array
+				let found = false;
+
+				for (let i = 0; i < self.aditMessages.length; i++) {
+					if (self.aditMessages[i].instanceId == instanceID && self.aditMessages[i].variableId == result.Variable.$.ID) {
+						//this variable is already in the array, so we will just update the value
+						self.log('debug', `Variable ${result.Variable.$.ID} already exists in the array, so we will just update the value.`)
+						self.aditMessages[i].variableValue = result.Variable._;
+						found = true;
+						break;
+					}
 				}
-			})
-		}		
+
+				if (!found) {
+					self.log('debug', `Variable ${result.Variable.$.ID} does not exist in the array, so we will add it.`)
+					self.aditMessages.push(aditMessageObj);
+				}
+			}
+			else {
+				//maybe some other type of message was received that we haven't implemented yet
+			}
+		});
 	},
 
 	checkAllWebSockets() {
