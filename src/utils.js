@@ -488,12 +488,12 @@ module.exports = {
 			})
 
 			this.aditChannelDefinitions.forEach((c) => {
-				if (c.NetworkEdition && c.NetworkEdition == true) {
+				//if (c.NetworkEdition && c.NetworkEdition == true) {
 					toReturn.push({
 						id: c.ID,
 						label: c.Name
 					})
-				}				
+				//}				
 			})
 		}
 		else {
