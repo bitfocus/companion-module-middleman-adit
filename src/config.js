@@ -43,7 +43,7 @@ module.exports = {
 				type: 'textinput',
 				id: 'config_polling_rate',
 				label: 'AdIT Management Service Refresh Rate (in seconds)',
-				tooltip: 'How often to refresh the Channels, Management Rules, Variables, and Instance information from the Management Server',
+				tooltip: 'How often to refresh channels, rules, variables, and instance information from the AdIT Management Service',
 				default: 5,
 				width: 6,
 				regex: this.REGEX_NUMBER
@@ -61,9 +61,9 @@ module.exports = {
 				type: 'checkbox',
 				id: 'log_control_interface_messages',
 				label: 'Log Control Interface Messages',
-				tooltip: 'Log all AdIT instance Control Interface messages',
+				tooltip: 'Log all AdIT control interface messages sent and received',
 				width: 6,
-				default: true,
+				default: false,
 				isVisible: (configValues) => configValues.channel !== 'none',
 			}
 		]

@@ -1,18 +1,17 @@
 ## Module to control AdIT SCTE 104/35 messaging software
 
 ### Configuration
-* Type in the IP address and port number for the AdIT management service, and click "Save"
-* Then return to the Connection page, and a list of channels will be available. 
-* Select the desired AdIT channel to interact with.
-* Any AdIT Instances associated with that Channel will automatically be connected.
+* Enter the IP address and port number of the host for the AdIT Management Service and click "Save"
+* Re-open the configuration/edit connection page and select the desired AdIT channel to control
+* Independent connections will be maintained for all AdIT instances registered to the selected channel
 
 ### Available Actions
 * Set Variable Value
 * Evaluate Messaging Rule
 
 ### Available Variables
-* Instance Count and Individual Instance Information (Name, Description, etc.)
-* Variables returned by Management Service
+* All variables of the selected channel
+* Instance information (connection statuses, configuration parameters, etc.)
 
 ### Available Feedbacks
 * None

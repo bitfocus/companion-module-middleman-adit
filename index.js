@@ -40,8 +40,8 @@ class moduleInstance extends InstanceBase {
 
 		this.primaryFound = false;
 
-		this.VARIABLES_INSTANCES = []; //used to hold the Companion variables for instances
-		this.VARIABLES_FROMMANAGER = []; //used to hold the Companion variables received from the AdIT Manager service
+		this.VARIABLES_INSTANCES = []; //used to hold the Companion variables about instances and connections
+		this.VARIABLES_FROMMANAGER = []; //used to hold the Companion variables received from AdIT
 
 		this.currentlyReelectingPrimary = false;
 
@@ -51,7 +51,7 @@ class moduleInstance extends InstanceBase {
 	}
 
 	async init(config) {
-		this.log('info', `AdIT Instance Control Interface client ID: ${this.aditControlInterfaceID}`)
+		this.log('info', `AdIT control interface client ID: ${this.aditControlInterfaceID}`)
 
 		this.getConfigFields()
 
@@ -71,7 +71,7 @@ class moduleInstance extends InstanceBase {
 		if (this.config.manager_ip) {
 			this.startConfigTimer();
 
-			if (this.config.channel !== 'none') { //if channel is not none (they've selected a Channel), start channel data timer
+			if (this.config.channel !== 'none') { //if channel is not none (they've selected a channel), start channel data timer
 				this.aditChannelDefinitions = []
 				this.aditManualRuleDefinitions = []
 				this.aditVariableDefinitions = []
@@ -84,7 +84,7 @@ class moduleInstance extends InstanceBase {
 				this.primaryFound = false;
 		
 				this.VARIABLES_INSTANCES = []; //used to hold the Companion variables for instances
-				this.VARIABLES_FROMMANAGER = []; //used to hold the Companion variables received from the AdIT Manager service
+				this.VARIABLES_FROMMANAGER = []; //used to hold the Companion variables received from the AdIT Manager Service
 		
 				this.currentlyReelectingPrimary = false;
 				
@@ -101,15 +101,15 @@ class moduleInstance extends InstanceBase {
 		this.closeWebSockets();
 	}
 
-	clearIntervals() { //clear any and all intervals so that they won't keep requesting data
+	clearIntervals() {
 		if (this.config_timer) {
-			this.log('debug', `Stopping Config Timer Interval (for Channels).`);
+			this.log('debug', `Stopping configuration timer (channels).`);
 			clearInterval(this.config_timer);
 			this.config_timer = null;
 		}
 
 		if (this.channelDataTimer) {
-			this.log('debug', `Stopping Channel Data Interval (Vars, Messaging Rules, Instances).`);
+			this.log('debug', `Stopping channel data timer (variables, messaging rules, and instances)`);
 			clearInterval(this.channelDataTimer);
 			this.channelDataTimer = null;
 		}
