@@ -22,7 +22,7 @@ module.exports = {
 					}
 				],
 				callback: (action) => {
-					this.log('info', `Sending request to set variable ID: ${action.options.variable} to value: ${action.options.value}`)
+					this.log('debug', `Sending request to set variable: ${action.options.variable} to value: ${action.options.value}`)
 
 					//Construct XML request to set variable value
 					let val = action.options.value;
@@ -43,7 +43,7 @@ module.exports = {
 
 					//Finally, if option is turned on, log the message that was sent
 					if (this.config.log_control_interface_messages) {
-						this.log('debug', `AdIT Control Interface message sent: ${xml}`)
+						this.log('info', `AdIT control interface message sent: ${xml}`)
 					}
 				},
 			},
@@ -61,7 +61,7 @@ module.exports = {
 					}
 				],
 				callback: (action) => {
-					this.log('info', `Sending request to evaluate messaging rule ID: ${action.options.messaging_rule}`)
+					this.log('debug', `Sending request to evaluate messaging rule: ${action.options.messaging_rule}`)
 
 					//Construct XML request to set variable value
 					let obj = { EvaluateManualMessagingRuleRequest: { $: { ID: action.options.messaging_rule } } }
@@ -73,7 +73,7 @@ module.exports = {
 
 					//Finally, if option is turned on, log the message that was sent
 					if (this.config.log_control_interface_messages) {
-						this.log('debug', `AdIT Control Interface message sent: ${xml}`)
+						this.log('info', `AdIT control interface message sent: ${xml}`)
 					}
 				}
 			}
@@ -84,7 +84,7 @@ module.exports = {
 		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
 			if (this.aditInstanceWebSockets[i].state == 'open') {
 				let aditInstance = this.aditInstanceDefinitions.find(x => x.ID == this.aditInstanceWebSockets[i].ID);
-				this.log('debug', `Sending message to AdIT Instance: ${aditInstance.Name}`);
+				this.log('debug', `Sending message to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`);
 				this.aditInstanceWebSockets[i].ws.send(msg);
 			}
 		}

@@ -4,7 +4,7 @@ const xml2js = require('xml2js')
 module.exports = {
 
 	initWebSockets() {
-		this.updateStatus('unknown', 'Opening Instance Websocket Connections...');
+		this.updateStatus('unknown', 'Opening instance WebSocket connections...');
 
 		//first go through and close out any existing websocket definitions, if they happen to exist
 		this.closeWebSockets();
@@ -17,15 +17,15 @@ module.exports = {
 
 		this.updateStatus('ok');
 
-		//if (this.config.channel !== 'none') {
+		if (this.config.channel !== 'none') {
 			setTimeout(this.checkForPrimary.bind(this), 5000); //checks after 5 seconds
-		//}
+		}
 	},
 
 	openWebSocket(instanceID, primary) {
 		let self = this;
 
-		this.log('debug', 'Opening WebSocket Connection for: ' + instanceID);
+		this.log('debug', 'Opening WebSocket connection for: ' + instanceID);
 		
 		let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
 		let aditInstanceWS = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.ID == instanceID);
@@ -34,19 +34,19 @@ module.exports = {
 			//check to see if this instance GUID is in the list of GUIDs already opened
 			if (this.openConnectionGUIDs.includes(aditInstance.ID)) {
 				//don't open a new connection, close this one first
-				this.log('debug', `AdIT Instance: ${aditInstance.Name} is in the list of open connection GUIDs, so we will not open a new one.`);
+				this.log('debug', `AdIT instance: ${aditInstance.Name} is in the list of open connection GUIDs, so we will not open a new one.`);
 				return
 			}
 		}
 
 		if (aditInstance && aditInstanceWS) { //if the instance exists and the websocket exists
-			this.log('debug', `WebSocket already exists for AdIT Instance: ${aditInstance.Name}`); //really shouldn't happen with the new openconnectionguids list
+			this.log('debug', `WebSocket already exists for AdIT instance: ${aditInstance.Name}`); //really shouldn't happen with the new openconnectionguids list
 		}
 		else if (aditInstance && !aditInstanceWS) { //if the instance exists and the websocket does not exist
-			this.log('debug', `Creating WebSocket for AdIT Instance: ${aditInstance.Name}`);
+			this.log('debug', `Creating WebSocket for AdIT instance: ${aditInstance.Name}`);
 
 			if (primary) { //if this is the/a primary Instance
-				this.log('info', `AdIT Instance ${aditInstance.Name} will be marked as Primary.`);
+				this.log('info', `AdIT instance ${aditInstance.Name} will be marked as Primary.`);
 			}
 			//add new index to the ws array, and then open the websocket
 			this.aditInstanceWebSockets.push({
@@ -58,17 +58,16 @@ module.exports = {
 
 		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
 			if (this.aditInstanceWebSockets[i].ID == instanceID) {
-				this.log('debug', `Attempting to open WebSocket connection to AdIT Instance: ${aditInstance.Name}`);
-				//this.log('debug', `WebSocket Path: ${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}`);
+				this.log('debug', `Attempting to open WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`);
 
 				if (this.aditInstanceWebSockets[i].state == 'open') {
-					this.log('debug', `WebSocket connection already open to AdIT Instance: ${aditInstance.Name}`);
+					this.log('debug', `WebSocket connection already open to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`);
 				}
 				else {
 					this.aditInstanceWebSockets[i].ws = new WebSocket(`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.aditControlInterfaceID}`);
 
 					this.aditInstanceWebSockets[i].ws.on('open', () => {
-						this.log('info', `AdIT Instance Control Interface WebSocket connection opened: ${aditInstance.Name}`)
+						this.log('info', `Opened WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)
 						this.updateStatus('ok')
 						this.aditInstanceWebSockets[i].state = 'ok';
 		
@@ -81,7 +80,7 @@ module.exports = {
 			
 					this.aditInstanceWebSockets[i].ws.on('close', (code) => {
 						if (this.aditInstanceWebSockets[i].state !== 'force-closed') {
-							this.log('warn', `AdIT Instance (${aditInstance.Name}) Control Interface WebSocket connection closed with code ${code}`)
+							this.log('warn', `WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) closed with code ${code}`)
 							//this.updateStatus('warning');
 							this.aditInstanceWebSockets[i].state = 'closed';
 	
@@ -98,7 +97,7 @@ module.exports = {
 							this.reconnectWebSocket(instanceID);
 						}
 						else {
-							this.log('debug', `AdIT Instance (${aditInstance.Name}) Control Interface WebSocket connection forced closed with code ${code}`);
+							this.log('debug', `WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) forcibly closed with code ${code}`);
 
 							//remove this instance from the openConnectionGUIDs array
 							let index = this.openConnectionGUIDs.indexOf(this.aditInstanceWebSockets[i].ID);
@@ -121,10 +120,10 @@ module.exports = {
 		
 						if (data.toString().indexOf('ECONNREFUSED') > -1) {
 							state = 'conn-refused';
-							this.log('warn', `AdIT Instance (${aditInstance.Name}) Connection Refused. Is this Instance still online?`)
+							this.log('warn', `WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) refused. Is this AdIT instance still online?`)
 						}
 						else {
-							this.log('warn', `AdIT Instance (${aditInstance.Name}) Control Interface WebSocket error: ${data}`)
+							this.log('warn', `WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) error: ${data}`)
 						}
 						
 						this.aditInstanceWebSockets[i].state = state;
@@ -141,32 +140,29 @@ module.exports = {
 			}				
 		}
 
-		//if (this.config.channel !== 'none') {
+		if (this.config.channel !== 'none') {
 			setTimeout(this.checkForPrimary.bind(this), 5000); //checks after 5 seconds
-		//}
+		}
 	},
 
 	reconnectWebSocket(instanceID) {
 		let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
 		if (aditInstance) {
 			if (this.config.channel !== 'none') {
-				this.log('debug', `Attempting to re-open websocket connection to: ${aditInstance.Name}`);
+				this.log('debug', `Attempting to re-open WebSocket connection to instance ${aditInstance.Name} (${aditInstance.ID})`);
 				setTimeout(this.openWebSocket.bind(this), 3000, instanceID, aditInstance.Primary);
 			}
 		}
 		else {
-			this.log('debug', `AdIT Instance ${instanceID} not found. Cannot re-open websocket connection.`);
+			this.log('debug', `AdIT instance ${aditInstance.Name} (${aditInstance.ID}) not found. Cannot re-open WebSocket connection.`);
 		}		
 	},
 
 	messageReceivedFromWebSocket(instanceID, isPrimary, data) {
 		let self = this;
-
-		//let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID);
-		//let aditInstanceWS = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.ID == instanceID);
 	
 		if (self.config.log_control_interface_messages == true) {
-			self.log('debug', `AdIT Control Interface message received: ${data}`)
+			self.log('debug', `AdIT control interface message received: ${data}`)
 		}
 
 		xml2js.parseString(data, function (err, result) {
@@ -178,7 +174,7 @@ module.exports = {
 				if (instanceID == self.aditPrimaryInstanceID) {
 					//if this is a primary instance, save that variable value
 					if (self.config.log_control_interface_messages == true) {
-						//self.log('debug', 'This is a primary instance, so we will save the variable value.');
+						self.log('debug', 'This is the primary instance, so we will apply the variable value.');
 					}
 					let variableVal = {}
 					variableVal[result.Variable.$.ID] = result.Variable._
@@ -190,8 +186,8 @@ module.exports = {
 				}
 				else {
 					if (self.config.log_control_interface_messages == true) {
-						//self.log('debug', 'This is not a primary instance, so we will not save the variable value.');
-						//self.log('debug', `Primary Instance ID: ${self.aditPrimaryInstanceID}`);
+						self.log('debug', 'This is not the primary instance, so we will not apply the variable value.');
+						self.log('debug', `Primary instance ID: ${self.aditPrimaryInstanceID}`);
 					}
 				}			
 
@@ -239,21 +235,35 @@ module.exports = {
 		}
 
 		if (instanceOpenCount == 0) {
-			this.log('error', `No Instance WebSocket connections available. The module will not function properly until an Instance connection is available.`);
+			this.log('error', `No AdIT instance WebSocket connections available. The module will not function properly until at least one AdIT instance connection is connected`);
 			this.updateStatus('error');
 		}
 
 		this.setVariableValues({
-			instance_connections_open: instanceOpenCount
+			instances_connected: instanceOpenCount
 		});
+
+		//Loop through instance definitions to set "_connected" variables for each
+		let instanceConnectedVariableValues = {};
+		for (let i = 0; i < this.aditInstanceDefinitions.length; i++) {	
+			let aditInstance = this.aditInstanceDefinitions[i];
+			//If this instance ID is found in openConnectionGUIDs, then set connected to true, otherwise false
+			if (this.openConnectionGUIDs.indexOf(aditInstance.ID) > -1) {
+				instanceConnectedVariableValues[`instance_${i+1}_connected`] = 'True';
+			}
+			else {
+				instanceConnectedVariableValues[`instance_${i+1}_connected`] = 'False';
+			}
+		}
+		this.setVariableValues(instanceConnectedVariableValues);
 	},
 
 	closeWebSockets() {
 		if (this.aditInstanceWebSockets.length > 0) {
-			this.log('info', 'Closing Web Sockets...');
+			this.log('info', 'Closing WebSockets connections...');
 
 			for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
-				this.log('debug', `Closing WebSocket connection to AdIT Instance: ${this.aditInstanceWebSockets[i].ID}`)
+				this.log('debug', `Closing WebSocket connection to AdIT instance: ${this.aditInstanceWebSockets[i].ID}`)
 				this.aditInstanceWebSockets[i].state = 'force-closed';
 				this.aditInstanceWebSockets[i].ws.terminate();
 				delete this.aditInstanceWebSockets[i].ws;
@@ -264,9 +274,6 @@ module.exports = {
 					this.openConnectionGUIDs.splice(index, 1);
 				}
 			}
-	
-			//now reset the entire websocket array
-			//this.aditInstanceWebSockets = [];
 		}		
 	}
 }
