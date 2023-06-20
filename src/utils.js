@@ -25,27 +25,38 @@ module.exports = {
 				self.log('debug', `Available AdIT channel options have changed, updating...`);
 				self.getConfigFields(); //reloads the config fields
 			}
-			if (self.config.channel == 'none') {
-				self.updateStatus('warn', 'No channel selected in configuration');
-				self.log('warn', 'No channel selected in configuration');
-			}
-			else {
-				//check to see if their previously selected channel is now in the list of available channels
-				let channelObj = self.aditChannelDefinitions.find(channel => channel.ID === self.config.channel);
-				if (channelObj) {
-					//probably ok
-					self.updateStatus(InstanceStatus.Ok);
+			if (self.config.channel !== undefined) {
+				if (self.config.channel == 'none') {
+					self.updateStatus('warn', 'No channel selected in configuration');
+					self.log('warn', 'No channel selected in configuration');
 				}
 				else {
-					//channel was not found, we should tell the user
-					self.updateStatus('warn', 'Channel no longer available, please select a new one');
-					self.log('warn', 'Channel no longer available, please select a new one in the module config');
+					//check to see if their previously selected channel is now in the list of available channels
+					let channelObj = self.aditChannelDefinitions.find(channel => channel.ID === self.config.channel);
+					if (channelObj) {
+						//probably ok
+						self.updateStatus(InstanceStatus.Ok);
+						this.startChannelDataTimer();
+					}
+					else {
+						//channel was not found, we should tell the user
+						self.updateStatus('warn', 'Channel no longer available, please select a new one');
+						self.log('warn', 'Channel no longer available, please select a new one in the module config');
+						self.config.channel = 'none';
+						self.saveConfig(self.config);
+						self.getConfigFields();
+						self.configUpdated(self.config);
+					}
 				}
+			}
+			else {
+				self.updateStatus('warn', 'No channel selected in configuration.');
+				self.log('warn', 'No channel selected in configuration.');
 			}
 
 			//clear the timer so they have a chance to choose
-			clearInterval(self.config_timer);
-			self.config_timer = undefined;
+			//clearInterval(self.config_timer);
+			//self.config_timer = undefined;
 		});
 	},
 
@@ -55,13 +66,20 @@ module.exports = {
 		}
 
 		this.updateStatus(InstanceStatus.Ok);
+
 		if (this.config.channel !== 'none') {
-			//only proceed if they have configured a channel
+			//check to see if their previously selected channel is now in the list of available channels
+			let channelObj = this.aditChannelDefinitions.find(channel => channel.ID === this.config.channel);
+			if (channelObj) {
+				this.getChannelData(); //immediately request the channel data before setting the interval
 
-			this.getChannelData(); //immediately request the channel data before setting the interval
-
-			//On interval, call AdIT Management Service API for current lists of channel specific data - manual rules, variables, instances
-			this.channelDataTimer = setInterval(this.getChannelData.bind(this), (parseInt(this.config.config_polling_rate) * 1000));
+				//On interval, call AdIT Management Service API for current lists of channel specific data - manual rules, variables, instances
+				this.channelDataTimer = setInterval(this.getChannelData.bind(this), (parseInt(this.config.config_polling_rate) * 1000));
+			}
+			else {
+				this.updateStatus('warn', 'Channel no longer available, please select a new one');
+				this.log('warn', 'Channel no longer available, please select a new one in the module config...');
+			}
 		}
 	},
 
