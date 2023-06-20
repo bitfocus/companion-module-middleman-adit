@@ -31,7 +31,7 @@ module.exports = {
 			}
 			else {
 				//check to see if their previously selected channel is now in the list of available channels
-				let channelObj = self.aditChannelDefinitions.find(channel => channel.id === self.config.channel);
+				let channelObj = self.aditChannelDefinitions.find(channel => channel.ID === self.config.channel);
 				if (channelObj) {
 					//probably ok
 					self.updateStatus(InstanceStatus.Ok);
