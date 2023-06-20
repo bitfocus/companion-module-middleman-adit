@@ -264,7 +264,7 @@ module.exports = {
 						self.aditChannelDefinitions = tmpChannelDefinitions
 					}
 					else {
-						self.log('error', `Failed to get list of Channels from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+						self.log('error', `Failed to get list of channels from AdIT Management Service with HTTP status code: ${res.statusCode}`)
 					}
 	
 					//Fire callback function with toReturn to indicate whether or not the list has changed	
@@ -274,14 +274,14 @@ module.exports = {
 				});
 	
 			}).on('error', err => {
-				self.log('error', `Failed to get list of Channels from AdIT Management Service with HTTP error: ${err.message}`)
-				self.updateStatus('error', 'Error getting Channels');
+				self.log('error', `Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`)
+				self.updateStatus('error', 'Error getting channels');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting Channels');
+			self.updateStatus('error', 'Error getting channels');
 			self.clearIntervals();
 		}
 	},
@@ -337,14 +337,14 @@ module.exports = {
 				});
 	
 			}).on('error', err => {
-				self.log('error', `Failed to get list of Messaging Rules from AdIT Management Service with HTTP error: ${err.message}`);
-				self.updateStatus('error', 'Error getting Manual Rules');
+				self.log('error', `Failed to get list of messaging rules from AdIT Management Service with HTTP error: ${err.message}`);
+				self.updateStatus('error', 'Error getting messaging rules');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting Manual Rules');
+			self.updateStatus('error', 'Error getting messaging rules');
 			self.clearIntervals();
 		}
 	},
@@ -381,7 +381,7 @@ module.exports = {
 						self.aditVariableDefinitions = tmpVariableDefinitions;
 					}
 					else {
-						self.log('error', `Failed to get list of Variables from AdIT Management Service with HTTP status code: ${res.statusCode}`)
+						self.log('error', `Failed to get list of variables from AdIT Management Service with HTTP status code: ${res.statusCode}`)
 					}
 
 					//Fire callback function with toReturn to indicate whether or not the list has changed	
