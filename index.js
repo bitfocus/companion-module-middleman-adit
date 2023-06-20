@@ -63,6 +63,7 @@ class moduleInstance extends InstanceBase {
 		this.initPresets()
 
 		this.clearIntervals();
+		this.closeWebSockets();
 
 		if (this.config.control_interface_id == '' || this.config.control_interface_id == null || this.config.control_interface_id == undefined) {
 			this.config.control_interface_id = uuidv4();
@@ -78,7 +79,7 @@ class moduleInstance extends InstanceBase {
 			this.startConfigTimer();
 
 			if (this.config.channel !== 'none') { //if channel is not none (they've selected a channel), start channel data timer
-				this.aditChannelDefinitions = []
+				//this.aditChannelDefinitions = []
 				this.aditManualRuleDefinitions = []
 				this.aditVariableDefinitions = []
 				this.aditInstanceDefinitions = []
@@ -93,6 +94,8 @@ class moduleInstance extends InstanceBase {
 		
 				this.currentlyReelectingPrimary = false;
 				
+				this.initActions(); //rebuild the list of actions since we have reset the manual rules and variables back to empty
+
 				this.startChannelDataTimer();
 			}
 		}

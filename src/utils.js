@@ -67,9 +67,13 @@ module.exports = {
 
 		this.updateStatus(InstanceStatus.Ok);
 
+		console.log('this.config.channel value: ' + this.config.channel);
+
 		if (this.config.channel !== 'none') {
 			//check to see if their previously selected channel is now in the list of available channels
 			let channelObj = this.aditChannelDefinitions.find(channel => channel.ID === this.config.channel);
+			console.log('channel obj');
+			console.log(channelObj);
 			if (channelObj) {
 				this.getChannelData(); //immediately request the channel data before setting the interval
 
@@ -77,8 +81,9 @@ module.exports = {
 				this.channelDataTimer = setInterval(this.getChannelData.bind(this), (parseInt(this.config.config_polling_rate) * 1000));
 			}
 			else {
-				this.updateStatus('warn', 'Channel no longer available, please select a new one');
-				this.log('warn', 'Channel no longer available, please select a new one in the module config...');
+				if (this.aditChannelDefinitions.length > 0) {
+					this.updateStatus('warn', 'Channel no longer available, please select a new one');
+				}
 			}
 		}
 	},

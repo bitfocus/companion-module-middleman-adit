@@ -46,7 +46,8 @@ module.exports = {
 				tooltip: 'How often to refresh channels, rules, variables, and instance information from the AdIT Management Service',
 				default: 5,
 				width: 6,
-				regex: this.REGEX_NUMBER
+				regex: this.REGEX_NUMBER,
+				isVisible: (configValues) => false,
 			},
 			{
 				type: 'dropdown',
