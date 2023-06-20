@@ -64,7 +64,7 @@ module.exports = {
 					this.log('debug', `WebSocket connection already open to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`);
 				}
 				else {
-					this.aditInstanceWebSockets[i].ws = new WebSocket(`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.aditControlInterfaceID}`);
+					this.aditInstanceWebSockets[i].ws = new WebSocket(`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.config.control_interface_id}`);
 
 					this.aditInstanceWebSockets[i].ws.on('open', () => {
 						this.log('info', `Opened WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)

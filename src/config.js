@@ -65,6 +65,15 @@ module.exports = {
 				width: 6,
 				default: false,
 				isVisible: (configValues) => configValues.channel !== 'none',
+			},
+			{
+				type: 'textinput',
+				id: 'control_interface_id',
+				label: 'Control Interface ID',
+				tooltip: 'The ID of the control interface to use for this Companion instance',
+				width: 6,
+				default: '',
+				isVisible: (configValues) => false,
 			}
 		]
 	}
