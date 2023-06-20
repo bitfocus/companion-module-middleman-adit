@@ -30,8 +30,17 @@ module.exports = {
 				self.log('warn', 'No channel selected in configuration');
 			}
 			else {
-				//probably ok
-				self.updateStatus(InstanceStatus.Ok);
+				//check to see if their previously selected channel is now in the list of available channels
+				let channelObj = self.aditChannelDefinitions.find(channel => channel.id === self.config.channel);
+				if (channelObj) {
+					//probably ok
+					self.updateStatus(InstanceStatus.Ok);
+				}
+				else {
+					//channel was not found, we should tell the user
+					self.updateStatus('warn', 'Channel no longer available, please select a new one');
+					self.log('warn', 'Channel no longer available, please select a new one in the module config');
+				}
 			}
 
 			//clear the timer so they have a chance to choose
@@ -242,7 +251,6 @@ module.exports = {
 
 		try {
 			let toReturn = false
-			self.log('debug', `Requesting channels from ${this.config.manager_ip}:${this.config.manager_port}`);
 			http.get(`http://${this.config.manager_ip}:${this.config.manager_port}/channels`, res => {
 				let data = []
 				const headerDate = res.headers && res.headers.date ? res.headers.date : 'no response date'

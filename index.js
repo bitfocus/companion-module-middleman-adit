@@ -64,7 +64,7 @@ class moduleInstance extends InstanceBase {
 
 		this.clearIntervals();
 
-		if (this.config.control_interface_id == '') {
+		if (this.config.control_interface_id == '' || this.config.control_interface_id == null || this.config.control_interface_id == undefined) {
 			this.config.control_interface_id = uuidv4();
 			this.log('info', 'AdIT Control Interface ID not set. Setting to ' + this.config.control_interface_id);
 			this.configUpdated(this.config);
