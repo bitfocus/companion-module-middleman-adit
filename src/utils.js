@@ -254,14 +254,19 @@ module.exports = {
 				res.on('end', () => {
 					//If 200/OK, parse JSON response enumerating the available channels
 					if (res.statusCode == 200) {
-						let tmpChannelDefinitions = JSON.parse(Buffer.concat(data).toString())
+						try {
+							let tmpChannelDefinitions = JSON.parse(Buffer.concat(data).toString())
 	
-						//Determine if any changes have actually occured before assigning to this.aditChannelDefinitions array
-						if (JSON.stringify(tmpChannelDefinitions) != JSON.stringify(self.aditChannelDefinitions)) {
-							toReturn = true
+							//Determine if any changes have actually occured before assigning to this.aditChannelDefinitions array
+							if (JSON.stringify(tmpChannelDefinitions) != JSON.stringify(self.aditChannelDefinitions)) {
+								toReturn = true
+							}
+		
+							self.aditChannelDefinitions = tmpChannelDefinitions
 						}
-	
-						self.aditChannelDefinitions = tmpChannelDefinitions
+						catch(error) {
+							self.log('error', `Failed to parse response and get list of Channels from AdIT Management Service: ${error}`);
+						}						
 					}
 					else {
 						self.log('error', `Failed to get list of channels from AdIT Management Service with HTTP status code: ${res.statusCode}`)

@@ -29,12 +29,11 @@ class moduleInstance extends InstanceBase {
 		this.initFeedbacks()
 		this.subscribeFeedbacks()
 
-		this.aditChannelDefinitions = []
-		this.aditManualRuleDefinitions = []
-		this.aditVariableDefinitions = []
-		this.aditInstanceDefinitions = []
-		this.aditInstanceWebSockets = []
-		this.aditControlInterfaceID = uuidv4()
+		this.aditChannelDefinitions = [];
+		this.aditManualRuleDefinitions = [];
+		this.aditVariableDefinitions = [];
+		this.aditInstanceDefinitions = [];
+		this.aditInstanceWebSockets = [];
 
 		this.openConnectionGUIDs = [];
 
@@ -51,10 +50,7 @@ class moduleInstance extends InstanceBase {
 	}
 
 	async init(config) {
-		this.log('info', `AdIT control interface client ID: ${this.aditControlInterfaceID}`)
-
-		this.getConfigFields()
-
+		//this.getConfigFields()
 		this.configUpdated(config);
 	}
 
@@ -68,6 +64,16 @@ class moduleInstance extends InstanceBase {
 
 		this.clearIntervals();
 
+		if (this.config.control_interface_id == '') {
+			this.config.control_interface_id = uuidv4();
+			this.log('info', 'AdIT Control Interface ID not set. Setting to ' + this.config.control_interface_id);
+			this.configUpdated(this.config);
+			return;
+		}
+		else {
+			this.log('info', 'AdIT Control Interface ID: ' + this.config.control_interface_id);
+		}
+
 		if (this.config.manager_ip) {
 			this.startConfigTimer();
 
@@ -77,7 +83,6 @@ class moduleInstance extends InstanceBase {
 				this.aditVariableDefinitions = []
 				this.aditInstanceDefinitions = []
 				this.aditInstanceWebSockets = []
-				this.aditControlInterfaceID = uuidv4()
 		
 				this.openConnectionGUIDs = [];
 		
