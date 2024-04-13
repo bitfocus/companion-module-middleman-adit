@@ -18,23 +18,18 @@ module.exports = {
 						type: 'textinput',
 						label: 'Value',
 						id: 'value',
-						default: ''
+						default: '',
+						useVariables: true,
 					}
 				],
-				callback: (action) => {
+				callback: async (action) => {
 					this.log('debug', `Sending request to set variable: ${action.options.variable} to value: ${action.options.value}`)
 
 					//Construct XML request to set variable value
-					let val = action.options.value;
-					this.parseVariablesInString(action.options.value)
-					.then((value) => {
-						val = value;
-					})
-					.catch((error) => {
-						//error parsing the variable
-					});
+					let val = await this.parseVariablesInString(action.options.value)
 
 					let obj = { SetVariableValueRequest: { $: { ID: action.options.variable }, _: val} }
+
 					let builder = new xml2js.Builder()
 					let xml = builder.buildObject(obj)
 
