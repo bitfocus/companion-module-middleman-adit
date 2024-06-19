@@ -14,7 +14,7 @@
     "@companion-module/base": "~1.0.2",
     "http": "^0.0.1-security",
     "uuid": "^9.0.0",
-    "ws": "^8.9.0",
+    "ws": "^8.17.1",
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
