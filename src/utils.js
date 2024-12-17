@@ -216,7 +216,7 @@ module.exports = {
 		} else {
 			self.log('warn', `No channel selected in configuration`)
 			if (self.config.clear_intervals) {
-				self.clearIntervals()
+				//self.clearIntervals()
 			}
 		}
 	},
@@ -337,14 +337,14 @@ module.exports = {
 					)
 					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
 					if (self.config.clear_intervals) {
-						self.clearIntervals()
+						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`)
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
 			if (self.config.clear_intervals) {
-				self.clearIntervals()
+				//self.clearIntervals()
 			}
 		}
 	},
@@ -412,14 +412,14 @@ module.exports = {
 					)
 					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
 					if (self.config.clear_intervals) {
-						self.clearIntervals()
+						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`)
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
 			if (self.config.clear_intervals) {
-				self.clearIntervals()
+				//self.clearIntervals()
 			}
 		}
 	},
@@ -478,14 +478,14 @@ module.exports = {
 					)
 					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
 					if (self.config.clear_intervals) {
-						self.clearIntervals()
+						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving variables from AdIT Management Service: ${error}`)
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
 			if (self.config.clear_intervals) {
-				self.clearIntervals()
+				//self.clearIntervals()
 			}
 		}
 	},
@@ -544,14 +544,14 @@ module.exports = {
 					)
 					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
 					if (self.config.clear_intervals) {
-						self.clearIntervals()
+						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving instances from AdIT Management Service: ${error}`)
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
 			if (self.config.clear_intervals) {
-				self.clearIntervals()
+				//self.clearIntervals()
 			}
 		}
 	},
