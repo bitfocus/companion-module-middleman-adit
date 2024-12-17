@@ -27,7 +27,7 @@ module.exports = {
 			}
 			if (self.config.channel !== undefined) {
 				if (self.config.channel == 'none') {
-					self.updateStatus('warn', 'No channel selected in configuration');
+					self.updateStatus(InstanceStatus.Warning, 'No channel selected in configuration');
 					self.log('warn', 'No channel selected in configuration');
 				}
 				else {
@@ -40,7 +40,7 @@ module.exports = {
 					}
 					else {
 						//channel was not found, we should tell the user
-						self.updateStatus('warn', 'Channel no longer available, please select a new one');
+						self.updateStatus(InstanceStatus.Warning, 'Channel no longer available, please select a new one');
 						self.log('warn', 'Channel no longer available, please select a new one in the module config');
 						self.config.channel = 'none';
 						self.saveConfig(self.config);
@@ -50,7 +50,7 @@ module.exports = {
 				}
 			}
 			else {
-				self.updateStatus('warn', 'No channel selected in configuration.');
+				self.updateStatus(InstanceStatus.Warning, 'No channel selected in configuration.');
 				self.log('warn', 'No channel selected in configuration.');
 			}
 
@@ -82,7 +82,7 @@ module.exports = {
 			}
 			else {
 				if (this.aditChannelDefinitions.length > 0) {
-					this.updateStatus('warn', 'Channel no longer available, please select a new one');
+					this.updateStatus(InstanceStatus.Warning, 'Channel no longer available, please select a new one');
 				}
 			}
 		}
@@ -311,13 +311,13 @@ module.exports = {
 	
 			}).on('error', err => {
 				self.log('error', `Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`)
-				self.updateStatus('error', 'Error getting channels');
+				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting channels');
+			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels');
 			self.clearIntervals();
 		}
 	},
@@ -374,13 +374,13 @@ module.exports = {
 	
 			}).on('error', err => {
 				self.log('error', `Failed to get list of messaging rules from AdIT Management Service with HTTP error: ${err.message}`);
-				self.updateStatus('error', 'Error getting messaging rules');
+				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting messaging rules');
+			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules');
 			self.clearIntervals();
 		}
 	},
@@ -428,13 +428,13 @@ module.exports = {
 	
 			}).on('error', err => {
 				self.log('error', `Failed to get list of variables from AdIT Management Service with HTTP error: ${err.message}`);
-				self.updateStatus('error', 'Error getting variables');
+				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving variables from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting variables');
+			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables');
 			self.clearIntervals();
 		}
 	},
@@ -482,13 +482,13 @@ module.exports = {
 	
 			}).on('error', err => {
 				self.log('error', `Failed to get list of instances from AdIT Management Service with HTTP error: ${err.message}`)
-				self.updateStatus('error', 'Error getting instances');
+				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances');
 				self.clearIntervals();
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving instances from AdIT Management Service: ${error}`);
-			self.updateStatus('error', 'Error getting instances');
+			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances');
 			self.clearIntervals();
 		}
 	},
@@ -618,7 +618,7 @@ module.exports = {
 					primary_instance_id: undefined,
 					primary_instance_name: undefined
 				});
-				this.updateStatus('error');
+				this.updateStatus(InstanceStatus.ConnectionFailure, 'Failed to elect primary instance');
 			}
 
 			this.aditPrimaryInstanceID = primaryInstanceID;
