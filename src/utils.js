@@ -311,6 +311,7 @@ module.exports = {
 								}
 
 								self.aditChannelDefinitions = tmpChannelDefinitions
+								self.updateStatus(InstanceStatus.Ok) //if we got the channels, we are good
 							} catch (error) {
 								self.log(
 									'error',
@@ -391,6 +392,8 @@ module.exports = {
 								}
 
 								self.aditManualRuleDefinitions = tmpManualRuleDefinitions
+
+								self.updateStatus(InstanceStatus.Ok) //if we got the manual rules, we are good
 							} else {
 								self.log(
 									'error',
@@ -464,6 +467,8 @@ module.exports = {
 								)
 							}
 
+							self.updateStatus(InstanceStatus.Ok) //if we got the variables, we are good
+
 							//Fire callback function with toReturn to indicate whether or not the list has changed
 							if (typeof callback === 'function') {
 								callback.bind(self)(toReturn)
@@ -529,6 +534,8 @@ module.exports = {
 									`Failed to get list of instances from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 								)
 							}
+
+							self.updateStatus(InstanceStatus.Ok) //if we got the instances, we are good
 
 							//Fire callback function with toReturn to indicate whether or not the list has changed
 							if (typeof callback === 'function') {
