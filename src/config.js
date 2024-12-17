@@ -37,7 +37,7 @@ module.exports = {
 				tooltip: 'The port number of the AdIT Management Service',
 				default: '8000',
 				width: 6,
-				regex: this.REGEX_NUMBER,
+				regex: Regex.NUMBER
 			},
 			{
 				type: 'textinput',
@@ -47,7 +47,7 @@ module.exports = {
 					'How often to refresh channels, rules, variables, and instance information from the AdIT Management Service',
 				default: 5,
 				width: 6,
-				regex: this.REGEX_NUMBER,
+				regex: Regex.NUMBER,
 				isVisible: (configValues) => false,
 			},
 			{
