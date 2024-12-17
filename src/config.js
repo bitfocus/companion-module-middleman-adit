@@ -28,7 +28,7 @@ module.exports = {
 				label: 'AdIT Management Service IP Address',
 				tooltip: 'The IP address of the server hosting the AdIT Management Service',
 				default: '127.0.0.1',
-				width: 6
+				width: 6,
 			},
 			{
 				type: 'textinput',
@@ -37,13 +37,14 @@ module.exports = {
 				tooltip: 'The port number of the AdIT Management Service',
 				default: '8000',
 				width: 6,
-				regex: this.REGEX_NUMBER
+				regex: this.REGEX_NUMBER,
 			},
 			{
 				type: 'textinput',
 				id: 'config_polling_rate',
 				label: 'AdIT Management Service Refresh Rate (in seconds)',
-				tooltip: 'How often to refresh channels, rules, variables, and instance information from the AdIT Management Service',
+				tooltip:
+					'How often to refresh channels, rules, variables, and instance information from the AdIT Management Service',
 				default: 5,
 				width: 6,
 				regex: this.REGEX_NUMBER,
@@ -85,5 +86,5 @@ module.exports = {
 				default: true,
 			},
 		]
-	}
+	},
 }

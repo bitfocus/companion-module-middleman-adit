@@ -3,5 +3,5 @@ module.exports = {
 		let presets = []
 
 		this.setPresetDefinitions(presets)
-	}
+	},
 }
