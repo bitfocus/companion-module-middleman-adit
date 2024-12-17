@@ -75,7 +75,15 @@ module.exports = {
 				width: 6,
 				default: '',
 				isVisible: (configValues) => false,
-			}
+			},
+			{
+				type: 'checkbox',
+				id: 'clear_intervals',
+				label: 'Clear All Intervals on Error',
+				tooltip: 'Clear all intervals when an error occurs',
+				width: 6,
+				default: true,
+			},
 		]
 	}
 }

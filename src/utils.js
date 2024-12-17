@@ -205,7 +205,9 @@ module.exports = {
 		}
 		else {
 			this.log('warn', `No channel selected in configuration`);
-			this.clearIntervals();
+			if (this.config.clear_intervals) {
+				this.clearIntervals();
+			}
 		}
 	},
 
@@ -312,13 +314,17 @@ module.exports = {
 			}).on('error', err => {
 				self.log('error', `Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`)
 				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels');
-				self.clearIntervals();
+				if (self.config.clear_intervals) {
+					self.clearIntervals();
+				}
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`);
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels');
-			self.clearIntervals();
+			if (self.config.clear_intervals) {
+				self.clearIntervals();
+			}
 		}
 	},
 
@@ -375,13 +381,17 @@ module.exports = {
 			}).on('error', err => {
 				self.log('error', `Failed to get list of messaging rules from AdIT Management Service with HTTP error: ${err.message}`);
 				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules');
-				self.clearIntervals();
+				if (self.config.clear_intervals) {
+					self.clearIntervals();
+				}
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`);
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules');
-			self.clearIntervals();
+			if (self.config.clear_intervals) {
+				self.clearIntervals();
+			}
 		}
 	},
 
@@ -429,13 +439,17 @@ module.exports = {
 			}).on('error', err => {
 				self.log('error', `Failed to get list of variables from AdIT Management Service with HTTP error: ${err.message}`);
 				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables');
-				self.clearIntervals();
+				if (self.config.clear_intervals) {
+					self.clearIntervals();
+				}
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving variables from AdIT Management Service: ${error}`);
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables');
-			self.clearIntervals();
+			if (self.config.clear_intervals) {
+				self.clearIntervals();
+			}
 		}
 	},
 
@@ -483,13 +497,17 @@ module.exports = {
 			}).on('error', err => {
 				self.log('error', `Failed to get list of instances from AdIT Management Service with HTTP error: ${err.message}`)
 				self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances');
-				self.clearIntervals();
+				if (self.config.clear_intervals) {
+					self.clearIntervals();
+				}
 			});
 		}
 		catch(error) {
 			self.log('error', `Error retrieving instances from AdIT Management Service: ${error}`);
 			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances');
-			self.clearIntervals();
+			if (self.config.clear_intervals) {
+				self.clearIntervals();
+			}
 		}
 	},
 
