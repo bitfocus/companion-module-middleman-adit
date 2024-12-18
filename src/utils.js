@@ -12,7 +12,7 @@ module.exports = {
 			clearInterval(self.config_timer)
 		}
 
-		self.updateStatus(InstanceStatus.Warning, 'Getting channels from AdIT Management Service...')
+		self.updateStatus(InstanceStatus.Ok, 'Getting channels from AdIT Management Service...')
 
 		self.getChannels() //immediately ask for the list of channels
 
@@ -52,6 +52,9 @@ module.exports = {
 						self.saveConfig(self.config)
 						self.getConfigFields()
 						self.configUpdated(self.config)
+
+						//clear interval?
+						//clearInterval(self.config_timer)
 					}
 				}
 			} else {
@@ -311,7 +314,7 @@ module.exports = {
 								}
 
 								self.aditChannelDefinitions = tmpChannelDefinitions
-								self.updateStatus(InstanceStatus.Ok) //if we got the channels, we are good
+								//self.updateStatus(InstanceStatus.Ok) //if we got the channels, we are good
 							} catch (error) {
 								self.log(
 									'error',
@@ -336,14 +339,14 @@ module.exports = {
 						'error',
 						`Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`,
 					)
-					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
+					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`)
-			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
+			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -393,7 +396,7 @@ module.exports = {
 
 								self.aditManualRuleDefinitions = tmpManualRuleDefinitions
 
-								self.updateStatus(InstanceStatus.Ok) //if we got the manual rules, we are good
+								//self.updateStatus(InstanceStatus.Ok) //if we got the manual rules, we are good
 							} else {
 								self.log(
 									'error',
@@ -413,14 +416,14 @@ module.exports = {
 						'error',
 						`Failed to get list of messaging rules from AdIT Management Service with HTTP error: ${err.message}`,
 					)
-					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
+					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`)
-			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
+			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -467,7 +470,7 @@ module.exports = {
 								)
 							}
 
-							self.updateStatus(InstanceStatus.Ok) //if we got the variables, we are good
+							//self.updateStatus(InstanceStatus.Ok) //if we got the variables, we are good
 
 							//Fire callback function with toReturn to indicate whether or not the list has changed
 							if (typeof callback === 'function') {
@@ -481,14 +484,14 @@ module.exports = {
 						'error',
 						`Failed to get list of variables from AdIT Management Service with HTTP error: ${err.message}`,
 					)
-					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
+					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving variables from AdIT Management Service: ${error}`)
-			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
+			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -535,7 +538,7 @@ module.exports = {
 								)
 							}
 
-							self.updateStatus(InstanceStatus.Ok) //if we got the instances, we are good
+							//self.updateStatus(InstanceStatus.Ok) //if we got the instances, we are good
 
 							//Fire callback function with toReturn to indicate whether or not the list has changed
 							if (typeof callback === 'function') {
@@ -549,14 +552,14 @@ module.exports = {
 						'error',
 						`Failed to get list of instances from AdIT Management Service with HTTP error: ${err.message}`,
 					)
-					self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
+					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
 				})
 		} catch (error) {
 			self.log('error', `Error retrieving instances from AdIT Management Service: ${error}`)
-			self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
+			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -699,7 +702,7 @@ module.exports = {
 					primary_instance_id: undefined,
 					primary_instance_name: undefined,
 				})
-				self.updateStatus(InstanceStatus.ConnectionFailure, 'Failed to elect primary instance')
+				//self.updateStatus(InstanceStatus.ConnectionFailure, 'Failed to elect primary instance')
 			}
 
 			self.aditPrimaryInstanceID = primaryInstanceID
