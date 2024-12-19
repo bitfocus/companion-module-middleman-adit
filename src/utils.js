@@ -12,7 +12,7 @@ module.exports = {
 			clearInterval(self.config_timer)
 		}
 
-		self.updateStatus(InstanceStatus.Ok, 'Getting channels from AdIT Management Service...')
+		self.updateStatus(InstanceStatus.Connecting, 'Getting channels from AdIT Management Service...')
 
 		self.getChannels() //immediately ask for the list of channels
 
@@ -35,19 +35,19 @@ module.exports = {
 			}
 			if (self.config.channel !== undefined) {
 				if (self.config.channel == 'none') {
-					self.updateStatus(InstanceStatus.Warning, 'No channel selected in configuration')
-					self.log('warn', 'No channel selected in configuration')
+					self.updateStatus(InstanceStatus.ConnectionFailure, 'No channel selected in configuration')
+					self.log('error', 'No channel selected in configuration')
 				} else {
 					//check to see if their previously selected channel is now in the list of available channels
 					let channelObj = self.aditChannelDefinitions.find((channel) => channel.ID === self.config.channel)
 					if (channelObj) {
 						//probably ok
-						self.updateStatus(InstanceStatus.Ok)
+						self.updateStatusObject.bind(self)('REST', 'getChannels', true, 'Ok')
 						self.startChannelDataTimer()
 					} else {
 						//channel was not found, we should tell the user
-						self.updateStatus(InstanceStatus.Warning, 'Channel no longer available, please select a new one')
-						self.log('warn', 'Channel no longer available, please select a new one in the module config')
+						self.updateStatus(InstanceStatus.ConnectionFailure, 'Channel no longer available, please select a new one')
+						self.log('error', 'Channel no longer available, please select a new one in the module config')
 						self.config.channel = 'none'
 						self.saveConfig(self.config)
 						self.getConfigFields()
@@ -58,8 +58,8 @@ module.exports = {
 					}
 				}
 			} else {
-				self.updateStatus(InstanceStatus.Warning, 'No channel selected in configuration.')
-				self.log('warn', 'No channel selected in configuration.')
+				self.updateStatus(InstanceStatus.ConnectionFailure, 'No channel selected in configuration.')
+				self.log('error', 'No channel selected in configuration.')
 			}
 
 			//clear the timer so they have a chance to choose
@@ -77,7 +77,7 @@ module.exports = {
 			clearInterval(self.channelDataTimer)
 		}
 
-		self.updateStatus(InstanceStatus.Ok)
+		//self.updateStatusObject.bind(self)('REST', 'getChannelData', true, 'Getting channel data from AdIT Management Service...')
 
 		console.log('self.config.channel value: ' + self.config.channel)
 
@@ -96,7 +96,7 @@ module.exports = {
 				)
 			} else {
 				if (self.aditChannelDefinitions.length > 0) {
-					self.updateStatus(InstanceStatus.Warning, 'Channel no longer available, please select a new one')
+					self.updateStatus(InstanceStatus.ConnectionFailure, 'Channel no longer available, please select a new one')
 				}
 			}
 		}
@@ -217,7 +217,7 @@ module.exports = {
 				}
 			})
 		} else {
-			self.log('warn', `No channel selected in configuration`)
+			self.log('error', `No channel selected in configuration`)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -315,17 +315,21 @@ module.exports = {
 
 								self.aditChannelDefinitions = tmpChannelDefinitions
 								//self.updateStatus(InstanceStatus.Ok) //if we got the channels, we are good
+								//update status object
+								self.updateStatusObject.bind(self)('REST', 'getChannelsFromManager', true, 'ok')
 							} catch (error) {
 								self.log(
 									'error',
-									`Failed to parse response and get list of Channels from AdIT Management Service: ${error}`,
+									`Failed to parse response and get list of Channels from AdIT Management Service: ${String(error)}`,
 								)
+								self.updateStatusObject.bind(self)('REST', 'getChannelsFromManager', false, 'error', `Error parsing response: ${String(error)}`)
 							}
 						} else {
 							self.log(
 								'error',
 								`Failed to get list of channels from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 							)
+							self.updateStatusObject.bind(self)('REST', 'getChannelsFromManager', false, 'error', `HTTP status code: ${res.statusCode}`)
 						}
 
 						//Fire callback function with toReturn to indicate whether or not the list has changed
@@ -340,6 +344,7 @@ module.exports = {
 						`Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`,
 					)
 					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
+					self.updateStatusObject.bind(self)('REST', 'getChannelsFromManager', false, 'error', `HTTP error: ${err.message}`)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
@@ -347,6 +352,7 @@ module.exports = {
 		} catch (error) {
 			self.log('error', `Error retrieving Channels from AdIT Management Service: ${error}`)
 			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
+			self.updateStatusObject.bind(self)('REST', 'getChannelsFromManager', false, 'error', `Error getting channels: ${String(error)}`)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -397,11 +403,13 @@ module.exports = {
 								self.aditManualRuleDefinitions = tmpManualRuleDefinitions
 
 								//self.updateStatus(InstanceStatus.Ok) //if we got the manual rules, we are good
+								self.updateStatusObject.bind(self)('REST', 'getManualRulesFromManager', true, 'ok')
 							} else {
 								self.log(
 									'error',
 									`Failed to get list of messaging rules from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 								)
+								self.updateStatusObject.bind(self)('REST', 'getManualRulesFromManager', false, 'error', `HTTP status code: ${res.statusCode}`)
 							}
 
 							//Fire callback function with toReturn to indicate whether or not the list has changed
@@ -417,6 +425,7 @@ module.exports = {
 						`Failed to get list of messaging rules from AdIT Management Service with HTTP error: ${err.message}`,
 					)
 					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
+					self.updateStatusObject.bind(self)('REST', 'getManualRulesFromManager', false, 'error', `HTTP error: ${err.message}`)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
@@ -424,6 +433,7 @@ module.exports = {
 		} catch (error) {
 			self.log('error', `Error retrieving Messaging Rules from AdIT Management Service: ${error}`)
 			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting messaging rules')
+			self.updateStatusObject.bind(self)('REST', 'getManualRulesFromManager', false, 'error', `Error getting messaging rules: ${String(error)}`)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -471,6 +481,7 @@ module.exports = {
 							}
 
 							//self.updateStatus(InstanceStatus.Ok) //if we got the variables, we are good
+							self.updateStatusObject.bind(self)('REST', 'getVariablesFromManager', true, 'ok')
 
 							//Fire callback function with toReturn to indicate whether or not the list has changed
 							if (typeof callback === 'function') {
@@ -485,6 +496,7 @@ module.exports = {
 						`Failed to get list of variables from AdIT Management Service with HTTP error: ${err.message}`,
 					)
 					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
+					self.updateStatusObject.bind(self)('REST', 'getVariablesFromManager', false, 'error', `HTTP error: ${err.message}`)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
@@ -492,6 +504,7 @@ module.exports = {
 		} catch (error) {
 			self.log('error', `Error retrieving variables from AdIT Management Service: ${error}`)
 			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting variables')
+			self.updateStatusObject.bind(self)('REST', 'getVariablesFromManager', false, 'error', `Error getting variables: ${String(error)}`)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -531,11 +544,14 @@ module.exports = {
 								}
 
 								self.aditInstanceDefinitions = tmpInstanceDefinitions
+
+								self.updateStatusObject.bind(self)('REST', 'getInstancesFromManager', true, 'ok')
 							} else {
 								self.log(
 									'error',
 									`Failed to get list of instances from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 								)
+								self.updateStatusObject.bind(self)('REST', 'getInstancesFromManager', false, 'error', `HTTP status code: ${res.statusCode}`)
 							}
 
 							//self.updateStatus(InstanceStatus.Ok) //if we got the instances, we are good
@@ -553,6 +569,7 @@ module.exports = {
 						`Failed to get list of instances from AdIT Management Service with HTTP error: ${err.message}`,
 					)
 					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
+					self.updateStatusObject.bind(self)('REST', 'getInstancesFromManager', false, 'error', `HTTP error: ${err.message}`)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
 					}
@@ -560,6 +577,7 @@ module.exports = {
 		} catch (error) {
 			self.log('error', `Error retrieving instances from AdIT Management Service: ${error}`)
 			//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting instances')
+			self.updateStatusObject.bind(self)('REST', 'getInstancesFromManager', false, 'error', `Error getting instances: ${String(error)}`)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
 			}
@@ -635,6 +653,7 @@ module.exports = {
 				primaryInstanceID = self.aditInstanceWebSockets[i].ID
 				let aditInstance = self.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == primaryInstanceID)
 				self.log('debug', `Primary AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)
+				self.updateStatusObject.bind(self)('REST', 'primary', true, 'ok', 'Primary instance detected')
 				self.setVariableValues({
 					primary_instance_id: aditInstance.ID,
 					primary_instance_name: aditInstance.Name,
@@ -646,7 +665,8 @@ module.exports = {
 
 		//make sure the instance is marked as primary in the aditInstanceDefinitions array
 		if (self.primaryFound == false) {
-			self.log('warn', `A primary AdIT instance was not detected.`)
+			self.log('error', `A primary AdIT instance was not detected.`)
+			self.updateStatusObject.bind(self)('REST', 'primary', false, 'error', 'Primary instance not detected')
 			self.reelectPrimary.bind(this)()
 		}
 	},
@@ -657,11 +677,11 @@ module.exports = {
 		self.log('info', `Attempting to elect a primary AdIT instance...`)
 
 		if (self.currentlyReelectingPrimary == true) {
-			self.log('warn', `A primary AdIT instance was not detected, however re-election is already in progress`)
+			self.log('info', `A primary AdIT instance was not detected, however re-election is already in progress`)
 		} else {
 			self.currentlyReelectingPrimary = true
 
-			self.log('warn', `Re-electing a new primary AdIT instance`)
+			self.log('info', `Re-electing a new primary AdIT instance`)
 
 			let primaryElected = false
 
@@ -675,6 +695,7 @@ module.exports = {
 						(INSTANCE) => INSTANCE.ID == self.aditInstanceWebSockets[i].ID,
 					)
 					self.log('info', `AdIT instance elected as primary: ${aditInstance.Name} (${aditInstance.ID})`)
+					self.updateStatusObject.bind(self)('REST', 'primary', true, 'ok', 'Primary instance elected')
 					self.setVariableValues({
 						primary_instance_id: aditInstance.ID,
 						primary_instance_name: aditInstance.Name,
@@ -697,6 +718,7 @@ module.exports = {
 
 			if (!primaryElected) {
 				self.log('error', 'Failed to elect a new primary AdIT instance to receive messages from')
+				self.updateStatusObject.bind(self)('REST', 'primary', false, 'error', 'Failed to elect primary instance')
 				self.primaryFound = false
 				self.setVariableValues({
 					primary_instance_id: undefined,
@@ -730,6 +752,91 @@ module.exports = {
 					self.setVariableValues(variableObj)
 				}
 			}
+		}
+	},
+
+	updateStatusObject(type, method, success, status, message) {
+		let self = this
+
+		let statusObj = {
+			type: type,
+			method: method,
+			success: success,
+			status: status,
+			message: message,
+		}
+
+		//first check to see if this status object already exists in the array, and update if so; the method is the key
+		let found = false
+
+		let logIt = false
+
+		for (let i = 0; i < self.STATUS_OBJECTS.length; i++) {
+			if (self.STATUS_OBJECTS[i].method == method) {
+				self.STATUS_OBJECTS[i] = statusObj
+				if (self.STATUS_OBJECTS[i].message == message) {
+					logIt = false
+				}
+				found = true
+				break
+			}
+		}
+
+		if (!found) {
+			//add it to the array
+			self.STATUS_OBJECTS.push(statusObj)
+			logIt = true
+		}
+
+		//if (self.config.verbose) {
+			console.log(self.STATUS_OBJECTS)
+		//}
+
+		//now check to see if any of the status objects are in an error state and update the instance status to error if so
+
+		let errorFound = false
+		let errorMessage = ''
+
+		let warningFound = false
+		let warningMessage = ''
+
+		for (let i = 0; i < self.STATUS_OBJECTS.length; i++) {
+			if (self.STATUS_OBJECTS[i].status == 'error') {
+				errorFound = true
+				errorMessage += self.STATUS_OBJECTS[i].message + '\n\n'
+			}
+
+			if (self.STATUS_OBJECTS[i].status == 'warn') {
+				warningFound = true
+				warningMessage += self.STATUS_OBJECTS[i].message + '\n\n'
+			}
+		}
+
+		if (errorFound) {
+			//if errors found, update the instance status to error and return
+			if (logIt) {
+				self.log('error', `Error found in status object: ${errorMessage}`)
+				self.lastErrorLog = errorMessage
+			}
+			self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage)
+			return
+		}
+		else if (warningFound) {
+			//if warnings found, update the instance status to warning and return
+			if (logIt) {
+				self.log('error', `Warning found in status object: ${warningMessage}`)
+				self.lastWarningLog = warningMessage
+			}
+
+			self.updateStatus(InstanceStatus.ConnectionFailure, warningMessage)
+			return
+		}
+		else {
+			//no errors found, so update the instance status to ok
+			if (self.config.verbose) {
+				self.log('debug', `Status object updated: ${statusObj.method} - ${statusObj.status}`)
+			}
+			self.updateStatus(InstanceStatus.Ok)
 		}
 	},
 }

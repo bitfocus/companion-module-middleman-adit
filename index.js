@@ -46,6 +46,10 @@ class moduleInstance extends InstanceBase {
 
 		this.aditMessages = []
 
+		this.STATUS_OBJECTS = []
+		this.lastErrorLog = ''
+		this.lastWarningLog = ''
+
 		return this
 	}
 
@@ -64,6 +68,8 @@ class moduleInstance extends InstanceBase {
 
 		this.clearIntervals()
 		this.closeWebSockets()
+
+		this.STATUS_OBJECTS = []
 
 		if (
 			this.config.control_interface_id == '' ||
