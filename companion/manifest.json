@@ -2,7 +2,7 @@
 	"id": "middleman-adit",
 	"name": "middleman-adit",
 	"shortname": "AdIT",
-	"description": "See [HELP.md](./HELP.md) and [LICENSE](./LICENSE)",
+	"description": "Controls Middleman Software's AdIT.",
 	"version": "2.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-middleman-adit.git",

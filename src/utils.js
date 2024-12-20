@@ -911,7 +911,7 @@ module.exports = {
 			self.log('error', `Error found in status object: ${errorMessage}`)
 			self.lastErrorLog = errorMessage
 
-			self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, '<br/> '))
+			self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, ' '))
 			return
 		} else if (warningFound) {
 			//if warnings found, update the instance status to warning and return
@@ -919,14 +919,14 @@ module.exports = {
 			self.log('error', `Warning found in status object: ${warningMessage}`)
 			self.lastWarningLog = warningMessage
 
-			self.updateStatus(InstanceStatus.ConnectionFailure, warningMessage.replace(/\n/g, '<br/> '))
+			self.updateStatus(InstanceStatus.ConnectionFailure, warningMessage.replace(/\n/g, ' '))
 			return
 		} else {
 			//no errors found, so update the instance status to ok
 			if (self.config.log_control_interface_messages == true) {
 				self.log('debug', `Status Ok: ${statusObj.method} - ${statusObj.status}`)
 			}
-			self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, '<br/> '))
+			self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
 		}
 	},
 }
