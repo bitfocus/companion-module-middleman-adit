@@ -77,6 +77,27 @@ module.exports = {
 				default: '',
 				isVisible: (configValues) => false,
 			},
+			{
+				type: 'static-text',
+				id: 'hr2',
+				width: 12,
+				label: '',
+				value: '<hr />',
+			},	
+			{
+				type: 'static-text',
+				id: 'info-verbose',
+				label: 'Verbose Logging',
+				width: 12,
+				value: `Enabling this option will put more detail in the log, which can be useful for troubleshooting purposes.`,
+			},	
+			{
+				type: 'checkbox',
+				id: 'verbose',
+				label: 'Enable Verbose Logging',
+				width: 3,
+				default: false,
+			}
 		]
 	},
 }
