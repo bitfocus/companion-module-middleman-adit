@@ -86,7 +86,13 @@ module.exports = {
 					this.aditInstanceWebSockets[i].ws.on('open', () => {
 						this.log('info', `Opened WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)
 						//this.updateStatus(InstanceStatus.Ok)
-						self.updateStatusObject.bind(self)('ws', `websocket-${aditInstance.ID}`, true, 'ok')
+						self.updateStatusObject.bind(self)(
+							'ws',
+							`websocket-${aditInstance.ID}`,
+							true,
+							'ok',
+							`Connected to AdIT instance ${aditInstance.Name} (${aditInstance.ID}).`,
+						)
 
 						this.aditInstanceWebSockets[i].state = 'ok'
 
@@ -104,7 +110,13 @@ module.exports = {
 								`WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) closed with code ${code}`,
 							)
 							//this.updateStatus('warning');
-							self.updateStatusObject.bind(self)('ws', `websocket-${aditInstance.ID}`, false, 'error', `${aditInstance.Name} (${aditInstance.ID} closed with code ${code}`)
+							self.updateStatusObject.bind(self)(
+								'ws',
+								`websocket-${aditInstance.ID}`,
+								false,
+								'error',
+								`Failed to connect to AdIT instance ${aditInstance.Name} (${aditInstance.ID}).`,
+							)
 							this.aditInstanceWebSockets[i].state = 'closed'
 
 							if (this.aditInstanceWebSockets[i].primary == true) {
@@ -124,7 +136,13 @@ module.exports = {
 								`WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) forcibly closed with code ${code}`,
 							)
 
-							self.updateStatusObject.bind(self)('ws', `websocket-${aditInstance.ID}`, true, 'error', `${aditInstance.Name} (${aditInstance.ID} forcibly closed with code ${code}`)
+							self.updateStatusObject.bind(self)(
+								'ws',
+								`websocket-${aditInstance.ID}`,
+								true,
+								'error',
+								`Connection to AdIT instance ${aditInstance.Name} (${aditInstance.ID}) forcibly closed.`,
+							)
 
 							//remove this instance from the openConnectionGUIDs array
 							let index = this.openConnectionGUIDs.indexOf(this.aditInstanceWebSockets[i].ID)
@@ -152,14 +170,26 @@ module.exports = {
 								`WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) refused. Is this AdIT instance still online?`,
 							)
 
-							self.updateStatusObject.bind(self)('ws', `websocket-${aditInstance.ID}`, false, 'error', `${aditInstance.Name} (${aditInstance.ID} refused. Is this AdIT instance still online?`)
+							self.updateStatusObject.bind(self)(
+								'ws',
+								`websocket-${aditInstance.ID}`,
+								false,
+								'error',
+								`${aditInstance.Name} (${aditInstance.ID} refused. Is this AdIT instance still online?`,
+							)
 						} else {
 							self.log(
 								'error',
 								`WebSocket connection to AdIT instance: ${aditInstance.Name} (${aditInstance.ID}) error: ${data}`,
 							)
 
-							self.updateStatusObject.bind(self)('ws', `websocket-${aditInstance.ID}`, false, 'error', `${aditInstance.Name} (${aditInstance.ID} error: ${data}`) 
+							self.updateStatusObject.bind(self)(
+								'ws',
+								`websocket-${aditInstance.ID}`,
+								false,
+								'error',
+								`${aditInstance.Name} (${aditInstance.ID} error: ${data}`,
+							)
 						}
 
 						this.aditInstanceWebSockets[i].state = state
@@ -196,7 +226,13 @@ module.exports = {
 				'debug',
 				`AdIT instance ${aditInstance.Name} (${aditInstance.ID}) not found. Cannot re-open WebSocket connection.`,
 			)
-			this.updateStatusObject('ws', `websocket-${aditInstance.ID}`, false, 'error', `${aditInstance.Name} (${aditInstance.ID} not found. Cannot re-open WebSocket connection.`)
+			this.updateStatusObject(
+				'ws',
+				`websocket-${aditInstance.ID}`,
+				false,
+				'error',
+				`${aditInstance.Name} (${aditInstance.ID} not found. Cannot re-open WebSocket connection.`,
+			)
 		}
 	},
 
@@ -283,9 +319,14 @@ module.exports = {
 				`No AdIT instance WebSocket connections available. The module will not function properly until at least one AdIT instance connection is connected.`,
 			)
 			//this.updateStatus('error')
-			this.updateStatusObject('ws', 'checkAllWebSockets', false, 'error', 'No AdIT instance WebSocket connections available. The module will not function properly until at least one AdIT instance connection is connected.')
-		}
-		else {
+			this.updateStatusObject(
+				'ws',
+				'checkAllWebSockets',
+				false,
+				'error',
+				'No AdIT instance WebSocket connections available. The module will not function properly until at least one AdIT instance connection is connected.',
+			)
+		} else {
 			this.updateStatusObject('ws', 'checkAllWebSockets', true, 'ok')
 		}
 
