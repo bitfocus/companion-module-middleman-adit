@@ -37,7 +37,7 @@ module.exports = {
 				tooltip: 'The port number of the AdIT Management Service',
 				default: '8000',
 				width: 6,
-				regex: Regex.NUMBER
+				regex: Regex.NUMBER,
 			},
 			{
 				type: 'textinput',
@@ -62,7 +62,7 @@ module.exports = {
 			{
 				type: 'checkbox',
 				id: 'log_control_interface_messages',
-				label: 'Log Control Interface Messages',
+				label: 'Log Control Interface Messages (Verbose Mode)',
 				tooltip: 'Log all AdIT control interface messages sent and received',
 				width: 6,
 				default: false,
