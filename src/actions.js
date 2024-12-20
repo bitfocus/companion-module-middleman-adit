@@ -82,7 +82,9 @@ module.exports = {
 		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
 			if (this.aditInstanceWebSockets[i].state == 'open') {
 				let aditInstance = this.aditInstanceDefinitions.find((x) => x.ID == this.aditInstanceWebSockets[i].ID)
-				this.log('debug', `Sending message to AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)
+				if (self.config.verbose) {
+					this.log('debug', `Sending message to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
+				}
 				this.aditInstanceWebSockets[i].ws.send(msg)
 			}
 		}

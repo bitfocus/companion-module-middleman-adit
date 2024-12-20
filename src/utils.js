@@ -334,7 +334,7 @@ module.exports = {
 									'manager',
 									false,
 									'error',
-									`Failed to connect to AdIT Management Service.`,
+									`Failed to communicate with AdIT Management Service.`,
 								)
 							}
 						} else {
@@ -350,7 +350,7 @@ module.exports = {
 								'manager',
 								false,
 								'error',
-								`Failed to connect to AdIT Management Service.`,
+								`Failed to communicate with AdIT Management Service.`,
 							)
 						}
 
@@ -374,7 +374,7 @@ module.exports = {
 						'manager',
 						false,
 						'error',
-						`Failed to connect to AdIT Management Service.`,
+						`Failed to communicate with AdIT Management Service.`,
 					)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
@@ -391,7 +391,7 @@ module.exports = {
 				'manager',
 				false,
 				'error',
-				`Failed to connect to AdIT Management Service.`,
+				`Failed to communicate with AdIT Management Service.`,
 			)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
@@ -460,7 +460,7 @@ module.exports = {
 									'manager',
 									false,
 									'error',
-									`Failed to connect to AdIT Management Service.`,
+									`Failed to communicate with AdIT Management Service.`,
 								)
 							}
 
@@ -485,7 +485,7 @@ module.exports = {
 						'manager',
 						false,
 						'error',
-						`Failed to connect to AdIT Management Service.`,
+						`Failed to communicate with AdIT Management Service.`,
 					)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
@@ -502,7 +502,7 @@ module.exports = {
 				'manager',
 				false,
 				'error',
-				`Failed to connect to AdIT Management Service.`,
+				`Failed to communicate with AdIT Management Service.`,
 			)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
@@ -578,7 +578,7 @@ module.exports = {
 						'manager',
 						false,
 						'error',
-						`Failed to connect to AdIT Management Service.`,
+						`Failed to communicate with AdIT Management Service.`,
 					)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
@@ -595,7 +595,7 @@ module.exports = {
 				'manager',
 				false,
 				'error',
-				`Failed to connect to AdIT Management Service.`,
+				`Failed to communicate with AdIT Management Service.`,
 			)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
@@ -654,7 +654,7 @@ module.exports = {
 									'manager',
 									false,
 									'error',
-									`Failed to connect to AdIT Management Service.`,
+									`Failed to communicate with AdIT Management Service.`,
 								)
 							}
 
@@ -681,7 +681,7 @@ module.exports = {
 						'manager',
 						false,
 						'error',
-						`Failed to connect to AdIT Management Service.`,
+						`Failed to communicate with AdIT Management Service.`,
 					)
 					if (self.config.clear_intervals) {
 						//self.clearIntervals()
@@ -698,7 +698,7 @@ module.exports = {
 				'manager',
 				false,
 				'error',
-				`Failed to connect to AdIT Management Service.`,
+				`Failed to communicate with AdIT Management Service.`,
 			)
 			if (self.config.clear_intervals) {
 				//self.clearIntervals()
@@ -775,14 +775,14 @@ module.exports = {
 				primaryInstanceID = self.aditInstanceWebSockets[i].ID
 				let aditInstance = self.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == primaryInstanceID)
 				if (self.config.verbose) {
-					self.log('debug', `Primary AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`)
+					self.log('debug', `Primary AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
 				}
 				self.updateStatusObject.bind(self)(
 					'REST',
 					'primary',
 					true,
 					'ok',
-					`Primary AdIT instance: ${aditInstance.Name} (${aditInstance.ID})`,
+					`Primary AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`,
 				)
 				self.setVariableValues({
 					primary_instance_id: aditInstance.ID,
@@ -795,7 +795,10 @@ module.exports = {
 
 		//make sure the instance is marked as primary in the aditInstanceDefinitions array
 		if (self.primaryFound == false) {
-			self.log('error', `A primary AdIT instance was not detected.`)
+			if (self.config.verbose) {
+				self.log('error', `A primary AdIT instance was not detected.`)
+			}
+			
 			self.updateStatusObject.bind(self)(
 				'REST',
 				'primary',
@@ -835,13 +838,13 @@ module.exports = {
 					let aditInstance = self.aditInstanceDefinitions.find(
 						(INSTANCE) => INSTANCE.ID == self.aditInstanceWebSockets[i].ID,
 					)
-					self.log('info', `AdIT instance elected as primary: ${aditInstance.Name} (${aditInstance.ID})`)
+					self.log('info', `AdIT instance elected as primary: "${aditInstance.Name}" (${aditInstance.ID})`)
 					self.updateStatusObject.bind(self)(
 						'REST',
 						'primary',
 						true,
 						'ok',
-						`Primary AdIT instance elected: ${aditInstance.Name} (${aditInstance.ID})`,
+						`Primary AdIT instance elected: "${aditInstance.Name}" (${aditInstance.ID})`,
 					)
 					self.setVariableValues({
 						primary_instance_id: aditInstance.ID,
@@ -868,7 +871,7 @@ module.exports = {
 					self.log('error', 'Failed to elect a new primary AdIT instance to receive messages from')
 				}
 				
-				self.updateStatusObject.bind(self)('REST', 'primary', false, 'error', 'Failed to elect primary AdIT instance.')
+				//self.updateStatusObject.bind(self)('REST', 'primary', false, 'error', 'Failed to elect primary AdIT instance.')
 				self.primaryFound = false
 				self.setVariableValues({
 					primary_instance_id: undefined,
