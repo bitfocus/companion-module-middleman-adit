@@ -45,7 +45,7 @@ module.exports = {
 					let channelObj = self.aditChannelDefinitions.find((channel) => channel.ID === self.config.channel)
 					if (channelObj) {
 						//probably ok
-						self.updateStatusObject.bind(self)('REST', 'getChannels', true, 'Ok')
+						self.updateStatusObject.bind(self)('REST', 'getChannels', true, 'ok')
 						self.startChannelDataTimer()
 					} else {
 						//channel was not found, we should tell the user
@@ -968,26 +968,29 @@ module.exports = {
 
 			if (self.STATUS_OBJECTS[i].status == 'ok') {
 				okFound = true
-				okMessage += self.STATUS_OBJECTS[i].message + '\n\n'
+				if (self.STATUS_OBJECTS[i].message !== undefined) {
+					okMessage += (self.STATUS_OBJECTS[i].message || '') + '\n\n'
+				}				
 			}
 		}
 
 		if (errorFound) {
 			//if errors found, update the instance status to error and return
+			if (self.lastErrorLog !== errorMessage) {
+				//this helps keep the log from flooding with the same identical message
+				self.lastErrorLog = errorMessage
+				if (self.config.verbose) {
+					self.log('error', `${errorMessage}`)
+				}
 
-			if (self.config.verbose) {
-				self.log('error', `Error found in status object: ${errorMessage}`)
+				self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, ' '))
 			}
-
-			self.lastErrorLog = errorMessage
-
-			self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, ' '))
 			return
 		} else if (warningFound) {
 			//if warnings found, update the instance status to warning and return
 
 			if (self.config.verbose) {
-				self.log('error', `Warning found in status object: ${warningMessage}`)
+				self.log('error', `${warningMessage}`)
 			}
 
 			self.lastWarningLog = warningMessage
@@ -996,10 +999,16 @@ module.exports = {
 			return
 		} else {
 			//no errors found, so update the instance status to ok
-			if (self.config.verbose == true) {
-				self.log('debug', `Status Ok: ${statusObj.method} - ${statusObj.status}`)
-			}
-			self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
+			//console.log('okMessage: ' + okMessage)
+			if (self.lastOkLog !== okMessage) {
+				//this helps keep the log from flooding with the same identical message
+				self.lastOkLog = okMessage
+
+				if (self.config.verbose) {
+					//self.log('debug', `Status OK: ${okMessage}`)
+				}
+				self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
+			}			
 		}
 	},
 }

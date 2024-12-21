@@ -74,8 +74,8 @@ module.exports = {
 			})
 		}
 
-		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
-			if (this.aditInstanceWebSockets[i].ID == instanceID) {
+		for (let i = 0; i < self.aditInstanceWebSockets.length; i++) {
+			if (self.aditInstanceWebSockets[i].ID == instanceID) {
 				if (self.config.verbose) {
 					self.log(
 						'debug',
@@ -83,7 +83,7 @@ module.exports = {
 					)
 				}
 
-				if (this.aditInstanceWebSockets[i].state == 'open') {
+				if (self.aditInstanceWebSockets[i].state == 'open') {
 					//this websocket is already open
 					if (self.config.verbose) {
 						self.log(
@@ -99,11 +99,11 @@ module.exports = {
 						)
 					}
 
-					this.aditInstanceWebSockets[i].ws = new WebSocket(
+					self.aditInstanceWebSockets[i].ws = new WebSocket(
 						`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.config.control_interface_id}`,
 					)
 
-					this.aditInstanceWebSockets[i].ws.on('open', () => {
+					self.aditInstanceWebSockets[i].ws.on('open', () => {
 						if (self.config.verbose) {
 							self.log(
 								'debug',
@@ -120,77 +120,80 @@ module.exports = {
 							`Connected to AdIT instance "${aditInstance.Name}" (${aditInstance.ID}).`,
 						)
 
-						this.aditInstanceWebSockets[i].state = 'ok'
+						self.aditInstanceWebSockets[i].state = 'ok'
 
-						this.aditInstanceWebSockets[i].state = 'open'
+						self.aditInstanceWebSockets[i].state = 'open'
 
-						this.openConnectionGUIDs.push(aditInstance.ID)
+						self.openConnectionGUIDs.push(aditInstance.ID)
 
-						this.checkAllWebSockets()
+						self.checkAllWebSockets()
 					})
 
-					this.aditInstanceWebSockets[i].ws.on('close', (code) => {
-						if (this.aditInstanceWebSockets[i].state !== 'force-closed') {
-							if (self.config.verbose) {
-								self.log(
+					self.aditInstanceWebSockets[i].ws.on('close', (code) => {
+						if (self.aditInstanceWebSockets && self.aditInstanceWebSockets[i]) {
+							if (self.aditInstanceWebSockets[i].state !== 'force-closed') {
+								if (self.config.verbose) {
+									self.log(
+										'error',
+										`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) closed with code ${code}`,
+									)
+								}
+	
+								//this.updateStatus('warning');
+								self.updateStatusObject.bind(self)(
+									'ws',
+									`websocket-${aditInstance.ID}`,
+									false,
 									'error',
-									`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) closed with code ${code}`,
+									`Failed to communicate with AdIT instance "${aditInstance.Name}" (${aditInstance.ID}).`,
 								)
-							}
-
-							//this.updateStatus('warning');
-							self.updateStatusObject.bind(self)(
-								'ws',
-								`websocket-${aditInstance.ID}`,
-								false,
-								'error',
-								`Failed to communicate with AdIT instance "${aditInstance.Name}" (${aditInstance.ID}).`,
-							)
-							this.aditInstanceWebSockets[i].state = 'closed'
-
-							if (this.aditInstanceWebSockets[i].primary == true) {
-								//this.reelectPrimary();
-							}
-
-							//remove this instance from the openConnectionGUIDs array before attempting to re-open
-							let index = this.openConnectionGUIDs.indexOf(this.aditInstanceWebSockets[i].ID)
-							if (index > -1) {
-								this.openConnectionGUIDs.splice(index, 1)
-							}
-
-							this.reconnectWebSocket(instanceID)
-						} else {
-							//this is a forced close
-							if (self.config.verbose) {
-								self.log(
-									'debug',
-									`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed with code ${code}`,
+								self.aditInstanceWebSockets[i].state = 'closed'
+	
+								if (self.aditInstanceWebSockets[i].primary == true) {
+									//this.reelectPrimary();
+								}
+	
+								//remove this instance from the openConnectionGUIDs array before attempting to re-open
+								let index = self.openConnectionGUIDs.indexOf(self.aditInstanceWebSockets[i].ID)
+								if (index > -1) {
+									self.openConnectionGUIDs.splice(index, 1)
+								}
+	
+								self.reconnectWebSocket(instanceID)
+							} else {
+								//this is a forced close
+								if (self.config.verbose) {
+									self.log(
+										'debug',
+										`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed with code ${code}`,
+									)
+								}
+	
+								self.updateStatusObject.bind(self)(
+									'ws',
+									`websocket-${aditInstance.ID}`,
+									true,
+									'error',
+									`Connection to AdIT instance "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed.`,
 								)
-							}
-
-							self.updateStatusObject.bind(self)(
-								'ws',
-								`websocket-${aditInstance.ID}`,
-								true,
-								'error',
-								`Connection to AdIT instance "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed.`,
-							)
-
-							//remove this instance from the openConnectionGUIDs array
-							let index = this.openConnectionGUIDs.indexOf(this.aditInstanceWebSockets[i].ID)
-							if (index > -1) {
-								this.openConnectionGUIDs.splice(index, 1)
+	
+								//remove this instance from the openConnectionGUIDs array
+								let index = self.openConnectionGUIDs.indexOf(self.aditInstanceWebSockets[i].ID)
+								if (index > -1) {
+									this.openConnectionGUIDs.splice(index, 1)
+								}
 							}
 						}
+						
 
-						this.checkAllWebSockets()
+						self.checkAllWebSockets()
 					})
 
-					this.aditInstanceWebSockets[i].ws.on('message', (data) => {
-						this.messageReceivedFromWebSocket.bind(this)(instanceID, primary, data)
+					self.aditInstanceWebSockets[i].ws.on('message', (data) => {
+						self.messageReceivedFromWebSocket.bind(self)(instanceID, primary, data)
 					})
 
-					this.aditInstanceWebSockets[i].ws.on('error', (data) => {
+					self.aditInstanceWebSockets[i].ws.on('error', (data) => {
 						let state = 'error'
 
 						//this.updateStatus('warning');
@@ -215,13 +218,13 @@ module.exports = {
 							)
 						}
 
-						this.aditInstanceWebSockets[i].state = state
+						self.aditInstanceWebSockets[i].state = state
 
-						if (this.aditInstanceWebSockets[i].primary == true) {
-							this.reelectPrimary()
+						if (self.aditInstanceWebSockets[i].primary == true) {
+							self.reelectPrimary()
 						}
 
-						this.checkAllWebSockets()
+						self.checkAllWebSockets()
 					})
 				}
 
@@ -229,8 +232,8 @@ module.exports = {
 			}
 		}
 
-		if (this.config.channel !== 'none') {
-			setTimeout(this.checkForPrimary.bind(this), 5000) //checks after 5 seconds
+		if (self.config.channel !== 'none') {
+			setTimeout(self.checkForPrimary.bind(self), 5000) //checks after 5 seconds
 		}
 	},
 
@@ -247,7 +250,7 @@ module.exports = {
 					)
 				}
 
-				setTimeout(this.openWebSocket.bind(this), 3000, instanceID, aditInstance.Primary)
+				setTimeout(this.openWebSocket.bind(self), 3000, instanceID, aditInstance.Primary)
 			}
 		} else {
 			this.updateStatusObject(

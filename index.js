@@ -49,6 +49,7 @@ class moduleInstance extends InstanceBase {
 		this.STATUS_OBJECTS = []
 		this.lastErrorLog = ''
 		this.lastWarningLog = ''
+		this.lastOkLog = ''
 
 		return this
 	}

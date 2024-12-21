@@ -59,7 +59,7 @@ module.exports = {
 				default: 'none',
 				//isVisible: (configValues) => configValues.channelsLoaded === true
 			},
-			{
+			/*{
 				type: 'checkbox',
 				id: 'log_control_interface_messages',
 				label: 'Log Control Interface Messages (Verbose Mode)',
@@ -67,7 +67,7 @@ module.exports = {
 				width: 6,
 				default: false,
 				isVisible: (configValues) => configValues.channel !== 'none',
-			},
+			},*/
 			{
 				type: 'textinput',
 				id: 'control_interface_id',
@@ -85,18 +85,18 @@ module.exports = {
 				value: '<hr />',
 			},
 			{
-				type: 'static-text',
-				id: 'info-verbose',
-				label: 'Verbose Logging',
-				width: 12,
-				value: `Enabling this option will put more detail in the log, which can be useful for troubleshooting purposes.`,
-			},
-			{
 				type: 'checkbox',
 				id: 'verbose',
 				label: 'Enable Verbose Logging',
 				width: 3,
 				default: false,
+			},
+			{
+				type: 'static-text',
+				id: 'info-verbose',
+				label: 'Verbose Logging',
+				width: 9,
+				value: `Enabling this option will put more detail in the log, which can be useful for troubleshooting purposes.`,
 			},
 		]
 	},

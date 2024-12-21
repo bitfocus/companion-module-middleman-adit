@@ -81,6 +81,8 @@ module.exports = {
 	},
 
 	sendMessage(msg) {
+		let self = this
+		
 		for (let i = 0; i < self.aditInstanceWebSockets.length; i++) {
 			if (self.aditInstanceWebSockets[i].state == 'open') {
 				let aditInstance = self.aditInstanceDefinitions.find((x) => x.ID == self.aditInstanceWebSockets[i].ID)
