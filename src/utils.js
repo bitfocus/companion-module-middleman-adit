@@ -29,7 +29,7 @@ module.exports = {
 		if (self.config.verbose) {
 			self.log('debug', 'Getting channels from AdIT Management Service...')
 		}
-		
+
 		self.getChannelsFromManager.bind(self)(function (channelsChanged) {
 			if (channelsChanged) {
 				//Only update if changes are made to one or more of the lists
@@ -89,7 +89,7 @@ module.exports = {
 		if (self.config.channel !== 'none') {
 			//check to see if their previously selected channel is now in the list of available channels
 			let channelObj = self.aditChannelDefinitions.find((channel) => channel.ID === self.config.channel)
-			
+
 			if (channelObj) {
 				self.getChannelData() //immediately request the channel data before setting the interval
 
@@ -328,7 +328,7 @@ module.exports = {
 										`Failed to parse response and get list of Channels from AdIT Management Service: ${String(error)}`,
 									)
 								}
-								
+
 								self.updateStatusObject.bind(self)(
 									'REST',
 									'manager',
@@ -344,7 +344,7 @@ module.exports = {
 									`Failed to get list of channels from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 								)
 							}
-							
+
 							self.updateStatusObject.bind(self)(
 								'REST',
 								'manager',
@@ -367,7 +367,7 @@ module.exports = {
 							`Failed to get list of channels from AdIT Management Service with HTTP error: ${err.message}`,
 						)
 					}
-					
+
 					//self.updateStatus(InstanceStatus.ConnectionFailure, 'Error getting channels')
 					self.updateStatusObject.bind(self)(
 						'REST',
@@ -412,7 +412,7 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('debug', `Requesting manual rules from ${self.config.manager_ip}:${self.config.manager_port}`)
 			}
-			
+
 			http
 				.get(
 					`http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/messaging-rules`,
@@ -454,7 +454,7 @@ module.exports = {
 										`Failed to get list of messaging rules from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 									)
 								}
-								
+
 								self.updateStatusObject.bind(self)(
 									'REST',
 									'manager',
@@ -523,7 +523,7 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('debug', `Requesting variables from ${self.config.manager_ip}:${self.config.manager_port}`)
 			}
-			
+
 			http
 				.get(
 					`http://${self.config.manager_ip}:${self.config.manager_port}/channels/${self.config.channel}/variables`,
@@ -552,7 +552,7 @@ module.exports = {
 										'error',
 										`Failed to get list of variables from AdIT Management Service with HTTP status code: ${res.statusCode}`,
 									)
-								}								
+								}
 							}
 
 							//self.updateStatus(InstanceStatus.Ok) //if we got the variables, we are good
@@ -798,7 +798,7 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('error', `A primary AdIT instance was not detected.`)
 			}
-			
+
 			self.updateStatusObject.bind(self)(
 				'REST',
 				'primary',
@@ -819,7 +819,6 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('debug', `A primary AdIT instance was not detected, however re-election is already in progress`)
 			}
-			
 		} else {
 			self.currentlyReelectingPrimary = true
 
@@ -870,7 +869,7 @@ module.exports = {
 				if (self.config.verbose) {
 					self.log('error', 'Failed to elect a new primary AdIT instance to receive messages from')
 				}
-				
+
 				//self.updateStatusObject.bind(self)('REST', 'primary', false, 'error', 'Failed to elect primary AdIT instance.')
 				self.primaryFound = false
 				self.setVariableValues({
@@ -904,7 +903,7 @@ module.exports = {
 					if (self.config.verbose) {
 						self.log('debug', `Applying stored value for variable: ${self.aditMessages[i].variableId}`)
 					}
-					
+
 					let variableObj = {}
 					variableObj[self.aditMessages[i].variableId] = self.aditMessages[i].variableValue
 					self.setVariableValues(variableObj)
@@ -979,7 +978,7 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('error', `Error found in status object: ${errorMessage}`)
 			}
-			
+
 			self.lastErrorLog = errorMessage
 
 			self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, ' '))
@@ -990,7 +989,7 @@ module.exports = {
 			if (self.config.verbose) {
 				self.log('error', `Warning found in status object: ${warningMessage}`)
 			}
-			
+
 			self.lastWarningLog = warningMessage
 
 			self.updateStatus(InstanceStatus.ConnectionFailure, warningMessage.replace(/\n/g, ' '))

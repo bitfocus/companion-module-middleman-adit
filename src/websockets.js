@@ -30,7 +30,6 @@ module.exports = {
 		if (self.config.verbose) {
 			self.log('debug', 'Opening WebSocket connection for: ' + instanceID)
 		}
-		
 
 		let aditInstance = this.aditInstanceDefinitions.find((INSTANCE) => INSTANCE.ID == instanceID)
 		let aditInstanceWS = this.aditInstanceWebSockets.find((INSTANCE) => INSTANCE.ID == instanceID)
@@ -45,7 +44,7 @@ module.exports = {
 						`AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) is in the list of open connection GUIDs, so we will not open a new one.`,
 					)
 				}
-				
+
 				return
 			}
 		}
@@ -53,9 +52,8 @@ module.exports = {
 		if (aditInstance && aditInstanceWS) {
 			//if the instance exists and the websocket exists
 			if (self.config.verbose) {
-				self.log('debug', `WebSocket already exists for AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`) //really shouldn't happen with the new openconnectionguids list	
+				self.log('debug', `WebSocket already exists for AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`) //really shouldn't happen with the new openconnectionguids list
 			}
-			
 		} else if (aditInstance && !aditInstanceWS) {
 			//if the instance exists and the websocket does not exist
 			if (self.config.verbose) {
@@ -83,7 +81,7 @@ module.exports = {
 						'debug',
 						`Attempting to open WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`,
 					)
-				}				
+				}
 
 				if (this.aditInstanceWebSockets[i].state == 'open') {
 					//this websocket is already open
@@ -93,7 +91,6 @@ module.exports = {
 							`WebSocket connection already open to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`,
 						)
 					}
-					
 				} else {
 					//this websocket is not open, so lets open it
 					if (self.config.verbose) {
@@ -101,14 +98,17 @@ module.exports = {
 							`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.config.control_interface_id}`,
 						)
 					}
-					
+
 					this.aditInstanceWebSockets[i].ws = new WebSocket(
 						`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.config.control_interface_id}`,
 					)
 
 					this.aditInstanceWebSockets[i].ws.on('open', () => {
 						if (self.config.verbose) {
-							self.log('debug', `Opened WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
+							self.log(
+								'debug',
+								`Opened WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`,
+							)
 						}
 
 						//this.updateStatus(InstanceStatus.Ok)
@@ -137,7 +137,7 @@ module.exports = {
 									`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) closed with code ${code}`,
 								)
 							}
-							
+
 							//this.updateStatus('warning');
 							self.updateStatusObject.bind(self)(
 								'ws',
@@ -196,7 +196,7 @@ module.exports = {
 						//this.updateStatus('warning');
 
 						if (data.toString().indexOf('ECONNREFUSED') > -1) {
-							state = 'conn-refused'					
+							state = 'conn-refused'
 
 							self.updateStatusObject.bind(self)(
 								'ws',
@@ -246,7 +246,7 @@ module.exports = {
 						`Attempting to re-open WebSocket connection to instance "${aditInstance.Name}" (${aditInstance.ID})`,
 					)
 				}
-				
+
 				setTimeout(this.openWebSocket.bind(this), 3000, instanceID, aditInstance.Primary)
 			}
 		} else {
@@ -270,7 +270,7 @@ module.exports = {
 		xml2js.parseString(data, function (err, result) {
 			if (result.Variable) {
 				if (self.config.log_control_interface_messages == true) {
-					self.log('debug', `Variable message received from AdIT Instance: ${instanceID}`);
+					self.log('debug', `Variable message received from AdIT Instance: ${instanceID}`)
 				}
 				//This is a variable XML message that was received
 				if (instanceID == self.aditPrimaryInstanceID) {
@@ -347,7 +347,7 @@ module.exports = {
 					`No AdIT instance WebSocket connections available. The module will not function properly until at least one AdIT instance connection is connected.`,
 				)
 			}
-			
+
 			//this.updateStatus('error')
 			/*this.updateStatusObject(
 				'ws',
@@ -388,7 +388,7 @@ module.exports = {
 				if (self.config.verbose) {
 					self.log('debug', `Closing WebSocket connection to AdIT instance: ${this.aditInstanceWebSockets[i].ID}`)
 				}
-				
+
 				this.aditInstanceWebSockets[i].state = 'force-closed'
 				this.aditInstanceWebSockets[i].ws.terminate()
 				delete this.aditInstanceWebSockets[i].ws
