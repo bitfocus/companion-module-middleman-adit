@@ -2,7 +2,9 @@ const xml2js = require('xml2js')
 
 module.exports = {
 	initActions() {
-		this.setActionDefinitions({
+		let self = this
+
+		self.setActionDefinitions({
 			set_variable_value: {
 				name: 'Set Variable Value',
 				options: [
@@ -11,7 +13,7 @@ module.exports = {
 						id: 'variable',
 						label: 'Variable',
 						width: 6,
-						choices: this.getVariableChoices(),
+						choices: self.getVariableChoices(),
 						required: true,
 					},
 					{
@@ -23,13 +25,13 @@ module.exports = {
 					},
 				],
 				callback: async (action) => {
-					this.log(
+					self.log(
 						'debug',
 						`Sending request to set variable: ${action.options.variable} to value: ${action.options.value}`,
 					)
 
 					//Construct XML request to set variable value
-					let val = await this.parseVariablesInString(action.options.value)
+					let val = await self.parseVariablesInString(action.options.value)
 
 					let obj = { SetVariableValueRequest: { $: { ID: action.options.variable }, _: val } }
 
@@ -37,11 +39,11 @@ module.exports = {
 					let xml = builder.buildObject(obj)
 
 					//Send XML to AdIT instance via Control Interface WebSocket
-					this.sendMessage(xml + '\r\n')
+					self.sendMessage(xml + '\r\n')
 
 					//Finally, if option is turned on, log the message that was sent
-					if (this.config.log_control_interface_messages) {
-						this.log('info', `AdIT control interface message sent: ${xml}`)
+					if (self.config.log_control_interface_messages) {
+						self.log('info', `AdIT control interface message sent: ${xml}`)
 					}
 				},
 			},
@@ -54,12 +56,12 @@ module.exports = {
 						label: 'Messaging Rule',
 						tooltip: 'Only messaging rules with rule type Manual will appear in this list.',
 						width: 6,
-						choices: this.getManualRuleChoices(),
+						choices: self.getManualRuleChoices(),
 						required: true,
 					},
 				],
 				callback: (action) => {
-					this.log('debug', `Sending request to evaluate messaging rule: ${action.options.messaging_rule}`)
+					self.log('debug', `Sending request to evaluate messaging rule: ${action.options.messaging_rule}`)
 
 					//Construct XML request to set variable value
 					let obj = { EvaluateManualMessagingRuleRequest: { $: { ID: action.options.messaging_rule } } }
@@ -67,11 +69,11 @@ module.exports = {
 					let xml = builder.buildObject(obj)
 
 					//Send XML to AdIT instance via Control Interface WebSocket
-					this.sendMessage(xml + '\r\n')
+					self.sendMessage(xml + '\r\n')
 
 					//Finally, if option is turned on, log the message that was sent
-					if (this.config.log_control_interface_messages) {
-						this.log('info', `AdIT control interface message sent: ${xml}`)
+					if (self.config.log_control_interface_messages) {
+						self.log('info', `AdIT control interface message sent: ${xml}`)
 					}
 				},
 			},
@@ -79,13 +81,13 @@ module.exports = {
 	},
 
 	sendMessage(msg) {
-		for (let i = 0; i < this.aditInstanceWebSockets.length; i++) {
-			if (this.aditInstanceWebSockets[i].state == 'open') {
-				let aditInstance = this.aditInstanceDefinitions.find((x) => x.ID == this.aditInstanceWebSockets[i].ID)
+		for (let i = 0; i < self.aditInstanceWebSockets.length; i++) {
+			if (self.aditInstanceWebSockets[i].state == 'open') {
+				let aditInstance = self.aditInstanceDefinitions.find((x) => x.ID == self.aditInstanceWebSockets[i].ID)
 				if (self.config.verbose) {
-					this.log('debug', `Sending message to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
+					self.log('debug', `Sending message to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
 				}
-				this.aditInstanceWebSockets[i].ws.send(msg)
+				self.aditInstanceWebSockets[i].ws.send(msg)
 			}
 		}
 	},
