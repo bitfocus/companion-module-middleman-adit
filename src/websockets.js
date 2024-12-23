@@ -218,11 +218,13 @@ module.exports = {
 							)
 						}
 
-						self.aditInstanceWebSockets[i].state = state
+						if (self.aditInstanceWebSockets[i]) {
+							self.aditInstanceWebSockets[i].state = state
 
-						if (self.aditInstanceWebSockets[i].primary == true) {
-							self.reelectPrimary()
-						}
+							if (self.aditInstanceWebSockets[i].primary == true) {
+								self.reelectPrimary()
+							}
+						}						
 
 						self.checkAllWebSockets()
 					})
