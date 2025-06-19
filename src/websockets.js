@@ -138,7 +138,7 @@ module.exports = {
 										`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) closed with code ${code}`,
 									)
 								}
-	
+
 								//this.updateStatus('warning');
 								self.updateStatusObject.bind(self)(
 									'ws',
@@ -148,17 +148,17 @@ module.exports = {
 									`Failed to communicate with AdIT instance "${aditInstance.Name}" (${aditInstance.ID}).`,
 								)
 								self.aditInstanceWebSockets[i].state = 'closed'
-	
+
 								if (self.aditInstanceWebSockets[i].primary == true) {
 									//this.reelectPrimary();
 								}
-	
+
 								//remove this instance from the openConnectionGUIDs array before attempting to re-open
 								let index = self.openConnectionGUIDs.indexOf(self.aditInstanceWebSockets[i].ID)
 								if (index > -1) {
 									self.openConnectionGUIDs.splice(index, 1)
 								}
-	
+
 								self.reconnectWebSocket(instanceID)
 							} else {
 								//this is a forced close
@@ -168,7 +168,7 @@ module.exports = {
 										`WebSocket connection to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed with code ${code}`,
 									)
 								}
-	
+
 								self.updateStatusObject.bind(self)(
 									'ws',
 									`websocket-${aditInstance.ID}`,
@@ -176,7 +176,7 @@ module.exports = {
 									'error',
 									`Connection to AdIT instance "${aditInstance.Name}" (${aditInstance.ID}) forcibly closed.`,
 								)
-	
+
 								//remove this instance from the openConnectionGUIDs array
 								let index = self.openConnectionGUIDs.indexOf(self.aditInstanceWebSockets[i].ID)
 								if (index > -1) {
@@ -184,7 +184,6 @@ module.exports = {
 								}
 							}
 						}
-						
 
 						self.checkAllWebSockets()
 					})
@@ -224,7 +223,7 @@ module.exports = {
 							if (self.aditInstanceWebSockets[i].primary == true) {
 								self.reelectPrimary()
 							}
-						}						
+						}
 
 						self.checkAllWebSockets()
 					})

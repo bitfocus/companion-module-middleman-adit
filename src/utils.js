@@ -970,7 +970,7 @@ module.exports = {
 				okFound = true
 				if (self.STATUS_OBJECTS[i].message !== undefined) {
 					okMessage += (self.STATUS_OBJECTS[i].message || '') + '\n\n'
-				}				
+				}
 			}
 		}
 
@@ -1008,7 +1008,7 @@ module.exports = {
 					//self.log('debug', `Status OK: ${okMessage}`)
 				}
 				self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
-			}			
+			}
 		}
 	},
 }
