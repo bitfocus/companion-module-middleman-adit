@@ -941,6 +941,7 @@ module.exports = {
 		}
 
 		if (self.config.verbose) {
+			console.log('Status Objects Array:')
 			console.log(self.STATUS_OBJECTS)
 		}
 
@@ -980,7 +981,7 @@ module.exports = {
 				//this helps keep the log from flooding with the same identical message
 				self.lastErrorLog = errorMessage
 				if (self.config.verbose) {
-					self.log('error', `${errorMessage}`)
+					self.log('debug', `${errorMessage}`)
 				}
 
 				self.updateStatus(InstanceStatus.ConnectionFailure, errorMessage.replace(/\n/g, ' '))
@@ -990,7 +991,7 @@ module.exports = {
 			//if warnings found, update the instance status to warning and return
 
 			if (self.config.verbose) {
-				self.log('error', `${warningMessage}`)
+				self.log('debug', `${warningMessage}`)
 			}
 
 			self.lastWarningLog = warningMessage
@@ -1005,10 +1006,10 @@ module.exports = {
 				self.lastOkLog = okMessage
 
 				if (self.config.verbose) {
-					//self.log('debug', `Status OK: ${okMessage}`)
+					self.log('debug', `Status OK: ${okMessage}`)
 				}
-				self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
 			}
+			self.updateStatus(InstanceStatus.Ok, okMessage.replace(/\n/g, ' '))
 		}
 	},
 }
