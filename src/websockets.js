@@ -5,7 +5,7 @@ const xml2js = require('xml2js')
 
 module.exports = {
 	initWebSockets() {
-		this.updateStatus('unknown', 'Opening instance WebSocket connections...')
+		this.updateStatus(InstanceStatus.Connecting, 'Opening instance WebSocket connections...')
 
 		//first go through and close out any existing websocket definitions, if they happen to exist
 		this.closeWebSockets()
@@ -21,6 +21,17 @@ module.exports = {
 
 		if (this.config.channel !== 'none') {
 			setTimeout(this.checkForPrimary.bind(this), 5000) //checks after 5 seconds
+		}
+	},
+
+	cleanupSocket(socket) {
+		if (socket) {
+			try {
+				socket.removeAllListeners()
+				socket.terminate()
+			} catch (e) {
+				// Handle if it's already closed or not a WebSocket
+			}
 		}
 	},
 
@@ -75,7 +86,25 @@ module.exports = {
 		}
 
 		for (let i = 0; i < self.aditInstanceWebSockets.length; i++) {
-			if (self.aditInstanceWebSockets[i].ID == instanceID) {
+			const socketEntry = self.aditInstanceWebSockets[i]
+
+			if (socketEntry.ws) {
+				if (self.config.verbose) {
+					self.log('debug', `Cleaning up WebSocket ${socketEntry.ID} before opening`)
+				}
+
+				self.cleanupSocket(socketEntry.ws)
+				socketEntry.ws = null
+				socketEntry.state = 'closed'
+
+				// Remove from openConnectionGUIDs
+				const idx = self.openConnectionGUIDs.indexOf(socketEntry.ID)
+				if (idx > -1) {
+					self.openConnectionGUIDs.splice(idx, 1)
+				}
+			}
+
+			if (socketEntry.ID == instanceID) {
 				if (self.config.verbose) {
 					self.log(
 						'debug',
@@ -83,7 +112,7 @@ module.exports = {
 					)
 				}
 
-				if (self.aditInstanceWebSockets[i].state == 'open') {
+				if (socketEntry.state == 'open') {
 					//this websocket is already open
 					if (self.config.verbose) {
 						self.log(
@@ -99,11 +128,11 @@ module.exports = {
 						)
 					}
 
-					self.aditInstanceWebSockets[i].ws = new WebSocket(
+					socketEntry.ws = new WebSocket(
 						`ws://${aditInstance.IPAddress}:${aditInstance.ControlInterfacePortNumber}/${this.config.control_interface_id}`,
 					)
 
-					self.aditInstanceWebSockets[i].ws.on('open', () => {
+					socketEntry.ws.on('open', () => {
 						if (self.config.verbose) {
 							self.log(
 								'debug',
@@ -129,7 +158,7 @@ module.exports = {
 						self.checkAllWebSockets()
 					})
 
-					self.aditInstanceWebSockets[i].ws.on('close', (code) => {
+					socketEntry.ws.on('close', (code) => {
 						if (self.aditInstanceWebSockets && self.aditInstanceWebSockets[i]) {
 							if (self.aditInstanceWebSockets[i].state !== 'force-closed') {
 								if (self.config.verbose) {
@@ -145,7 +174,7 @@ module.exports = {
 									`websocket-${aditInstance.ID}`,
 									false,
 									'error',
-									`Failed to communicate with AdIT instance "${aditInstance.Name}" (${aditInstance.ID}).`,
+									`Connection to AdIT instance "${aditInstance.Name}" (${aditInstance.ID}) closed.`,
 								)
 								self.aditInstanceWebSockets[i].state = 'closed'
 
@@ -188,11 +217,11 @@ module.exports = {
 						self.checkAllWebSockets()
 					})
 
-					self.aditInstanceWebSockets[i].ws.on('message', (data) => {
+					socketEntry.ws.on('message', (data) => {
 						self.messageReceivedFromWebSocket.bind(self)(instanceID, primary, data)
 					})
 
-					self.aditInstanceWebSockets[i].ws.on('error', (data) => {
+					socketEntry.ws.on('error', (data) => {
 						let state = 'error'
 
 						//this.updateStatus('warning');
