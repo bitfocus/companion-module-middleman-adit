@@ -3,7 +3,7 @@
 	"name": "middleman-adit",
 	"shortname": "AdIT",
 	"description": "Controls Middleman Software's AdIT.",
-	"version": "2.0.0",
+	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-middleman-adit.git",
 	"bugs": "https://github.com/bitfocus/companion-module-middleman-adit/issues",
@@ -11,10 +11,6 @@
 		{
 			"name": "James Heliker",
 			"email": "james.heliker@middleman.tv"
-		},
-		{
-			"name": "Joseph Adams",
-			"email": "josephdadams@gmail.com"
 		}
 	],
 	"legacyIds": [],
