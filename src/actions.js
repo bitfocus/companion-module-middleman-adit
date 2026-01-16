@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Companion action definitions for controlling AdIT
+ * 
+ * Defines actions for setting variable values and triggering manual messaging rules. 
+ * Actions send XML commands to all connected instances via the engine.
+ * 
+ * @module companion-module-middleman-adit/actions
+ */
 const xml2js = require('xml2js')
 
 module.exports = {
@@ -30,7 +38,7 @@ module.exports = {
 						`Sending request to set variable: ${action.options.variable} to value: ${action.options.value}`,
 					)
 
-					//Construct XML request to set variable value
+					// Construct XML request to set variable value
 					let val = await self.parseVariablesInString(action.options.value)
 
 					let obj = { SetVariableValueRequest: { $: { ID: action.options.variable }, _: val } }
@@ -38,12 +46,13 @@ module.exports = {
 					let builder = new xml2js.Builder()
 					let xml = builder.buildObject(obj)
 
-					//Send XML to AdIT instance via Control Interface WebSocket
+					// Send XML to AdIT instance via Control Interface WebSocket
+					// Uses the class method from index.js which delegates to engine.sendToAllInstances()
 					self.sendMessage(xml + '\r\n')
 
-					//Finally, if option is turned on, log the message that was sent
-					if (self.config.log_control_interface_messages) {
-						self.log('info', `AdIT control interface message sent: ${xml}`)
+					// Log the message if verbose logging is enabled
+					if (self.config.verbose) {
+						self.log('debug', `AdIT control interface message sent: ${xml}`)
 					}
 				},
 			},
@@ -63,34 +72,34 @@ module.exports = {
 				callback: (action) => {
 					self.log('debug', `Sending request to evaluate messaging rule: ${action.options.messaging_rule}`)
 
-					//Construct XML request to set variable value
+					// Construct XML request to evaluate manual rule
 					let obj = { EvaluateManualMessagingRuleRequest: { $: { ID: action.options.messaging_rule } } }
 					let builder = new xml2js.Builder()
 					let xml = builder.buildObject(obj)
 
-					//Send XML to AdIT instance via Control Interface WebSocket
+					// Send XML to AdIT instance via Control Interface WebSocket
+					// Uses the class method from index.js which delegates to engine.sendToAllInstances()
 					self.sendMessage(xml + '\r\n')
 
-					//Finally, if option is turned on, log the message that was sent
-					if (self.config.log_control_interface_messages) {
-						self.log('info', `AdIT control interface message sent: ${xml}`)
+					// Log the message if verbose logging is enabled
+					if (self.config.verbose) {
+						self.log('debug', `AdIT control interface message sent: ${xml}`)
 					}
 				},
 			},
 		})
 	},
 
+	/**
+	 * Sends a message to all connected AdIT instances.
+	 * Delegates to engine.sendToAllInstances() which uses the Map-based
+	 * architecture for reliable instance tracking.
+	 *
+	 * @param {string} msg - XML message to send
+	 */
 	sendMessage(msg) {
-		let self = this
-
-		for (let i = 0; i < self.aditInstanceWebSockets.length; i++) {
-			if (self.aditInstanceWebSockets[i].state == 'open') {
-				let aditInstance = self.aditInstanceDefinitions.find((x) => x.ID == self.aditInstanceWebSockets[i].ID)
-				if (self.config.verbose) {
-					self.log('debug', `Sending message to AdIT instance: "${aditInstance.Name}" (${aditInstance.ID})`)
-				}
-				self.aditInstanceWebSockets[i].ws.send(msg)
-			}
+		if (this.engine) {
+			this.engine.sendToAllInstances(msg)
 		}
 	},
 }
