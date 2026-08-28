@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	  "format": "prettier -w ."
+    "format": "prettier -w ."
   },
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
-    "@companion-module/tools": "^2.6.1",
+    "@companion-module/tools": "^2.8.0",
     "prettier": "^3.4.2"
   }
 }
