@@ -1,24 +1,24 @@
 {
-  "name": "middleman-adit",
-  "version": "3.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "format": "prettier -w ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bitfocus/companion-module-middleman-adit.git"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "@companion-module/base": "^1.11.2",
-    "uuid": "^9.0.0",
-    "ws": "^8.21.0",
-    "xml2js": "^0.5.0"
-  },
-  "devDependencies": {
-    "@companion-module/tools": "^2.8.0",
-    "prettier": "^3.4.2"
-  }
+	"name": "middleman-adit",
+	"version": "3.0.0",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"format": "prettier -w ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/bitfocus/companion-module-middleman-adit.git"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"@companion-module/base": "~1.15.0",
+		"uuid": "^9.0.0",
+		"ws": "^8.21.0",
+		"xml2js": "^0.5.0"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^2.9.0",
+		"prettier": "^3.4.2"
+	}
 }
